@@ -1,0 +1,7 @@
+/home/kolobabka/Desktop/LabaCL/build/CMakeFiles/intrinsics_gen.dir
+/home/kolobabka/Desktop/LabaCL/build/CMakeFiles/omp_gen.dir
+/home/kolobabka/Desktop/LabaCL/build/CMakeFiles/acc_gen.dir
+/home/kolobabka/Desktop/LabaCL/build/CMakeFiles/ParaCL.dir
+/home/kolobabka/Desktop/LabaCL/build/CMakeFiles/format.dir
+/home/kolobabka/Desktop/LabaCL/build/CMakeFiles/edit_cache.dir
+/home/kolobabka/Desktop/LabaCL/build/CMakeFiles/rebuild_cache.dir
