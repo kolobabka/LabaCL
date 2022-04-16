@@ -542,23 +542,89 @@ namespace interpret {
         }
     };
 
+    namespace {
+        void mulNums (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
+            int firstVal    = static_cast<NumScope *> (first)->val_;
+            int secondVal   = static_cast<NumScope *> (second)->val_;
+            context.calcStack_.push_back (context.buildScopeWrapper (secondVal * firstVal));
+        }
+        void mulArrs (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
+            const std::vector<int>& firstList = static_cast<ArrListScope *> (first)->list_;
+            const std::vector<int>& secondList = static_cast<ArrListScope *> (second)->list_;
+            int maxSize = std::max (firstList.size (), secondList.size ());
+            std::vector<int> res (maxSize);
+            for (int i = 0; i < maxSize; ++i)
+                res [i] =   (i < firstList.size () ? firstList [i] : 0) *
+                            (i < secondList.size () ? secondList [i] : 0);
+            context.calcStack_.push_back (context.buildScopeWrapper (res));
+        }
+    }
+
     struct BinOpMul {
         void operator() (Context &context) const
         {
-            const int first = getTopAndPopNum (context);
-            const int second = getTopAndPopNum (context);
+            auto first = getTopAndPopCalcStack (context);
+            auto second = getTopAndPopCalcStack (context);
 
-            context.calcStack_.push_back ((context.buildScopeWrapper (first * second)));
+            if (first->type_ != second->type_)
+                throw std::runtime_error ("Wrong types for arithmetic operation");
+            else {
+                switch (first->type_) {
+                    case ScopeTblWrapper::WrapperType::NUM: {
+                        mulNums (context, first, second);
+                        break;
+                    }
+                    case ScopeTblWrapper::WrapperType::ARR_LIST: {
+                        mulArrs (context, first, second);
+                        break;
+                    }
+                    default:
+                        throw std::runtime_error ("Unexpected data type in mul");
+                }
+            }
         }
     };
+
+    namespace {
+        void divNums (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
+            int firstVal    = static_cast<NumScope *> (first)->val_;
+            int secondVal   = static_cast<NumScope *> (second)->val_;
+            context.calcStack_.push_back (context.buildScopeWrapper (secondVal / firstVal));
+        }
+        void divArrs (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
+            const std::vector<int>& firstList = static_cast<ArrListScope *> (first)->list_;
+            const std::vector<int>& secondList = static_cast<ArrListScope *> (second)->list_;
+            int maxSize = std::max (firstList.size (), secondList.size ());
+            std::vector<int> res (maxSize);
+            for (int i = 0; i < maxSize; ++i)
+                res [i] =   (i < secondList.size () ? secondList [i] : 0) /
+                            (i < firstList.size () ? firstList [i] : 1);
+            context.calcStack_.push_back (context.buildScopeWrapper (res));
+        }
+    }
 
     struct BinOpDiv {
         void operator() (Context &context) const
         {
-            const int first = getTopAndPopNum (context);
-            const int second = getTopAndPopNum (context);
+            auto first = getTopAndPopCalcStack (context);
+            auto second = getTopAndPopCalcStack (context);
 
-            context.calcStack_.push_back ((context.buildScopeWrapper (second / first)));
+            if (first->type_ != second->type_)
+                throw std::runtime_error ("Wrong types for arithmetic operation");
+            else {
+                switch (first->type_) {
+                    case ScopeTblWrapper::WrapperType::NUM: {
+                        divNums (context, first, second);
+                        break;
+                    }
+                    case ScopeTblWrapper::WrapperType::ARR_LIST: {
+                        divArrs (context, first, second);
+                        break;
+                    }
+                    default:
+                        throw std::runtime_error ("Unexpected data type in mul");
+                }
+            }
         }
     };
 
