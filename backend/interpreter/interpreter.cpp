@@ -125,7 +125,7 @@ namespace interpret {
 
     ScopeTblWrapper *getTopAndPopCalcStack (Context &context)
     {
-        
+
         auto res = context.calcStack_.back ();
         context.calcStack_.pop_back ();
 
@@ -287,12 +287,6 @@ namespace interpret {
         return {parent_, this};
     }
 
-    std::pair<EvalApplyNode *, EvalApplyNode *> EAArrList::eval (Context &context)
-    {
-        context.calcStack_.push_back (context.buildScopeWrapper (list_));
-        return {parent_, this};
-    }
-
     std::pair<EvalApplyNode *, EvalApplyNode *> EAVar::eval (Context &context)
     {
         auto curScope = context.scopeStack_.back ();
@@ -366,6 +360,24 @@ namespace interpret {
         }
 
     }  // namespace
+
+    std::pair<EvalApplyNode *, EvalApplyNode *> EAArrList::eval (Context &context)
+    {
+        const AST::Node *astList = EvalApplyNode::getNode ();
+        if (curIndToExec_ != astList->getChildrenNum ()) {
+            
+            if (curIndToExec_ != 0)
+                evaluatedList_.push_back (getTopAndPopNum (context));
+
+            return {context.buildApplyNode (list_ [curIndToExec_++], this), this};
+
+        }
+
+        evaluatedList_.push_back (getTopAndPopNum (context));
+        
+        context.calcStack_.push_back (context.buildScopeWrapper (evaluatedList_));
+        return {parent_, this};
+    }
 
     std::pair<EvalApplyNode *, EvalApplyNode *> EACall::eval (Context &context)
     {

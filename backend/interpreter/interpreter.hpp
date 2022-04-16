@@ -43,9 +43,9 @@ namespace interpret {
 
     struct ArrListScope final : public ScopeTblWrapper {
 
-        std::vector<AST::Node*> list_;
+        std::vector<int> list_;
 
-        ArrListScope (const std::vector<AST::Node*>& list) : 
+        ArrListScope (const std::vector<int>& list) : 
             ScopeTblWrapper (ScopeTblWrapper::WrapperType::ARR_LIST), list_ (list) {};
 
     };
@@ -218,6 +218,8 @@ namespace interpret {
     class EAArrList final : public EvalApplyNode {
 
         std::vector<AST::Node *> list_;
+        std::vector<int> evaluatedList_;
+        int curIndToExec_ = 0;
 
     public:
         EAArrList (const AST::ArrList *arrList, EvalApplyNode *parent,
@@ -326,7 +328,7 @@ namespace interpret {
             return static_cast<FuncScope *> (rubbishCalcStack_.back ());
         }
 
-        ArrListScope *buildScopeWrapper (const std::vector<AST::Node*>& list)
+        ArrListScope *buildScopeWrapper (const std::vector<int>& list)
         {
             rubbishCalcStack_.push_back (new ArrListScope (list));
             return static_cast<ArrListScope *> (rubbishCalcStack_.back ());
@@ -423,11 +425,11 @@ namespace interpret {
                     std::cout << static_cast<NumScope *> (res)->val_ << std::endl;
                     break;
                 case ScopeTblWrapper::WrapperType::ARR_LIST: {
-                    const std::vector<AST::Node*>& arrListVec =
+                    const std::vector<int>& list = 
                         static_cast<ArrListScope *> (res)->list_;
                     std::cout << "[ ";
-                    for (auto v: arrListVec)
-                        std::cout << static_cast<AST::NumNode *> (v)->getValue () << " ";
+                    for (auto v: list)
+                        std::cout << v << " ";
                     std::cout << "]" << std::endl;
                     break;
                 }
