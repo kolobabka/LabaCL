@@ -454,7 +454,27 @@ namespace interpret {
         }
     };
 
+    namespace {
+        void addNums (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
+            int firstVal    = static_cast<NumScope *> (first)->val_;
+            int secondVal   = static_cast<NumScope *> (second)->val_;
+            context.calcStack_.push_back (context.buildScopeWrapper (firstVal + secondVal));
+        }
+        void addArrs (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
+            const std::vector<int>& firstList = static_cast<ArrListScope *> (first)->list_;
+            const std::vector<int>& secondList = static_cast<ArrListScope *> (second)->list_;
+            int maxSize = std::max (firstList.size (), secondList.size ());
+            std::vector<int> res (maxSize);
+            for (int i = 0; i < maxSize; ++i)
+                res [i] = (i < firstList.size () ? firstList [i] : 0) +
+                            (i < secondList.size () ? secondList [i] : 0);
+            context.calcStack_.push_back (context.buildScopeWrapper (res));
+        }
+    }
+
     struct BinOpAdd {
+
+
         void operator() (Context &context) const
         {
 
@@ -466,19 +486,11 @@ namespace interpret {
             else {
                 switch (first->type_) {
                     case ScopeTblWrapper::WrapperType::NUM: {
-                        int firstVal    = static_cast<NumScope *> (first)->val_;
-                        int secondVal   = static_cast<NumScope *> (second)->val_;
-                        context.calcStack_.push_back (context.buildScopeWrapper (firstVal + secondVal));
+                        addNums (context, first, second);
                         break;
                     }
                     case ScopeTblWrapper::WrapperType::ARR_LIST: {
-                        const std::vector<int>& firstList = static_cast<ArrListScope *> (first)->list_;
-                        const std::vector<int>& secondList = static_cast<ArrListScope *> (second)->list_;
-                        int maxSize = std::max (firstList.size (), secondList.size ());
-                        std::vector<int> res (maxSize);
-                        for (int i = 0; i < maxSize; ++i)
-                            res [i] = firstList [i] + secondList [i];
-                        context.calcStack_.push_back (context.buildScopeWrapper (res));
+                        addArrs (context, first, second);
                         break;
                     }
                     default:
