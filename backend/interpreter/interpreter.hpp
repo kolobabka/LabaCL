@@ -457,10 +457,39 @@ namespace interpret {
     struct BinOpAdd {
         void operator() (Context &context) const
         {
-            const int first = getTopAndPopNum (context);
-            const int second = getTopAndPopNum (context);
 
-            context.calcStack_.push_back (context.buildScopeWrapper (first + second));
+            auto first = getTopAndPopCalcStack (context);
+            auto second = getTopAndPopCalcStack (context);
+
+            if (first->type_ != second->type_)
+                throw std::runtime_error ("Wrong types for arithmetic operation");
+            else {
+                switch (first->type_) {
+                    case ScopeTblWrapper::WrapperType::NUM: {
+                        int firstVal    = static_cast<NumScope *> (first)->val_;
+                        int secondVal   = static_cast<NumScope *> (second)->val_;
+                        context.calcStack_.push_back (context.buildScopeWrapper (firstVal + secondVal));
+                        break;
+                    }
+                    case ScopeTblWrapper::WrapperType::ARR_LIST: {
+                        const std::vector<int>& firstList = static_cast<ArrListScope *> (first)->list_;
+                        const std::vector<int>& secondList = static_cast<ArrListScope *> (second)->list_;
+                        int maxSize = std::max (firstList.size (), secondList.size ());
+                        std::vector<int> res (maxSize);
+                        for (int i = 0; i < maxSize; ++i)
+                            res [i] = firstList [i] + secondList [i];
+                        context.calcStack_.push_back (context.buildScopeWrapper (res));
+                        break;
+                    }
+                    default:
+                        throw std::runtime_error ("");
+                }
+            }
+
+            // const int first = getTopAndPopNum (context);
+            // const int second = getTopAndPopNum (context);
+
+            // context.calcStack_.push_back (context.buildScopeWrapper (first + second));
         }
     };
 
