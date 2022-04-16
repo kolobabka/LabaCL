@@ -44,6 +44,9 @@ MULTILINE_COMMENT       "/*"(.|\n)*"*/"
 "("                     {   return yy::parser::token_type::OPCIRCBRACK; }
 ")"                     {   return yy::parser::token_type::CLCIRCBRACK; }
 
+"["                     {   return yy::parser::token_type::OPSQBRACK;   }
+"]"                     {   return yy::parser::token_type::CLSQBRACK;   }
+
 "{"                     {   return yy::parser::token_type::OPCURVBRACK; }
 "}"                     {   return yy::parser::token_type::CLCURVBRACK; }
 

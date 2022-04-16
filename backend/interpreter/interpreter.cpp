@@ -45,6 +45,11 @@ namespace interpret {
             return (new EAVar (varNode, parent));
         }
 
+        EvalApplyNode *buildApplyNodeFromArrList (const AST::ArrList *arrList, EvalApplyNode *parent)
+        {
+            return (new EAArrList (arrList, parent, arrList->getChildrenSlow ()));
+        }
+
         EvalApplyNode *buildApplyNodeFromFunction (const AST::FuncNode *funcNode, EvalApplyNode *parent)
         {
             return (new EAFunc (funcNode, parent));
@@ -88,6 +93,10 @@ namespace interpret {
                 rubbishEANodeStack_.push_back (
                     buildApplyNodeFromVariable (static_cast<const AST::VarNode *> (node), parent));
                 return rubbishEANodeStack_.back ();
+            case AST::NodeT::ARR_LIST:
+                rubbishEANodeStack_.push_back (
+                    buildApplyNodeFromArrList (static_cast<const AST::ArrList *> (node), parent));
+                return rubbishEANodeStack_.back ();
             case AST::NodeT::NUMBER:
                 rubbishEANodeStack_.push_back (
                     buildApplyNodeFromNumber (static_cast<const AST::NumNode *> (node), parent));
@@ -112,6 +121,16 @@ namespace interpret {
 
         int val = res->val_;
         return val;
+    }
+
+    ScopeTblWrapper *getTopAndPopCalcStack (Context &context)
+    {
+        
+        auto res = context.calcStack_.back ();
+        context.calcStack_.pop_back ();
+
+        return res;
+
     }
 
     ScopeTblWrapper::~ScopeTblWrapper () = default;
@@ -211,6 +230,9 @@ namespace interpret {
 
         void ChangeExistedVarValue (Scope::tblIt find, const ScopeTblWrapper *res)
         {
+            if (res->type_ == ScopeTblWrapper::WrapperType::ARR_LIST)
+                throw std::runtime_error ("No change for arrays");
+            
             auto val = (*find).second;
             NumScope *curNum = static_cast<NumScope *> (val);
             curNum->val_ = static_cast<const NumScope *> (res)->val_;
@@ -223,6 +245,8 @@ namespace interpret {
         {
             if (res->type_ == ScopeTblWrapper::WrapperType::NUM)
                 curScopeToFind->push ({lhs_, context.buildScopeWrapper (static_cast<NumScope *> (res)->val_)});
+            else if (res->type_ == ScopeTblWrapper::WrapperType::ARR_LIST)
+                curScopeToFind->push ({lhs_, context.buildScopeWrapper (static_cast<ArrListScope *> (res)->list_)});
             else {
                 FuncScope *funcToPush = static_cast<FuncScope *> (res);
                 const AST::FuncNode *predFuncName = funcToPush->name_;
@@ -260,6 +284,12 @@ namespace interpret {
     std::pair<EvalApplyNode *, EvalApplyNode *> EANum::eval (Context &context)
     {
         context.calcStack_.push_back (context.buildScopeWrapper (val_));
+        return {parent_, this};
+    }
+
+    std::pair<EvalApplyNode *, EvalApplyNode *> EAArrList::eval (Context &context)
+    {
+        context.calcStack_.push_back (context.buildScopeWrapper (list_));
         return {parent_, this};
     }
 

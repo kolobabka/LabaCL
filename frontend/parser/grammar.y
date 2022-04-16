@@ -98,6 +98,9 @@ namespace {
 %token                      OPCIRCBRACK "("
 %token                      CLCIRCBRACK ")"
 
+%token                      OPSQBRACK   "["
+%token                      CLSQBRACK   "]"
+
 %token                      OPCURVBRACK "{"
 %token                      CLCURVBRACK "}"
 
@@ -404,6 +407,14 @@ atomic                      :   NUMBER                          {   $$ = new AST
                                                                     $$->addChild (funcName);
                                                                     $$->addChild (funcArgs);
 
+                                                                }
+                            |   OPSQBRACK expA CLSQBRACK        {
+                                                                    $$ = new AST::ArrList (@1);
+                                                                    if ($2) {
+                                                                        for (auto v: *($2))
+                                                                            $$->addChild (v);
+                                                                        delete $2;
+                                                                    }
                                                                 }
                             |   ID                              {   $$ = new AST::VarNode   ($1, @1);                               };
 

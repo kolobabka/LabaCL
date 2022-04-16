@@ -25,6 +25,7 @@ namespace interpret {
 
             NUM,
             FUNC,
+            ARR_LIST,
             INLINE
 
         };
@@ -38,6 +39,15 @@ namespace interpret {
         int val_;
 
         NumScope (const int val) : ScopeTblWrapper (ScopeTblWrapper::WrapperType::NUM), val_ (val) {}
+    };
+
+    struct ArrListScope final : public ScopeTblWrapper {
+
+        std::vector<AST::Node*> list_;
+
+        ArrListScope (const std::vector<AST::Node*>& list) : 
+            ScopeTblWrapper (ScopeTblWrapper::WrapperType::ARR_LIST), list_ (list) {};
+
     };
 
     struct FuncScope final : public ScopeTblWrapper {
@@ -205,6 +215,19 @@ namespace interpret {
         std::pair<EvalApplyNode *, EvalApplyNode *> eval (Context &context) override;
     };
 
+    class EAArrList final : public EvalApplyNode {
+
+        std::vector<AST::Node *> list_;
+
+    public:
+        EAArrList (const AST::ArrList *arrList, EvalApplyNode *parent,
+                   const std::vector<AST::Node *> &list):
+            EvalApplyNode (arrList, parent), list_ (list) {} 
+
+        std::pair<EvalApplyNode *, EvalApplyNode *> eval (Context &context) override;
+
+    };
+
     class EAFunc final : public EvalApplyNode {
         std::string name_;
 
@@ -303,6 +326,12 @@ namespace interpret {
             return static_cast<FuncScope *> (rubbishCalcStack_.back ());
         }
 
+        ArrListScope *buildScopeWrapper (const std::vector<AST::Node*>& list)
+        {
+            rubbishCalcStack_.push_back (new ArrListScope (list));
+            return static_cast<ArrListScope *> (rubbishCalcStack_.back ());
+        }
+
         Scope *buildScope (Scope *parent = nullptr, tblIt it = tblIt (nullptr))
         {
             rubbishScopeStack_.push_back (new Scope (parent, it));
@@ -382,9 +411,31 @@ namespace interpret {
     };
 
     int getTopAndPopNum (Context &context);
+    ScopeTblWrapper *getTopAndPopCalcStack (Context &context);
 
     struct UnOpPrint {
-        void operator() (Context &context) const { std::cout << getTopAndPopNum (context) << std::endl; }
+        void operator() (Context &context) const 
+        {
+            auto res = getTopAndPopCalcStack (context);
+            switch (res->type_)
+            {
+                case ScopeTblWrapper::WrapperType::NUM:
+                    std::cout << static_cast<NumScope *> (res)->val_ << std::endl;
+                    break;
+                case ScopeTblWrapper::WrapperType::ARR_LIST: {
+                    const std::vector<AST::Node*>& arrListVec =
+                        static_cast<ArrListScope *> (res)->list_;
+                    std::cout << "[ ";
+                    for (auto v: arrListVec)
+                        std::cout << static_cast<AST::NumNode *> (v)->getValue () << " ";
+                    std::cout << "]" << std::endl;
+                    break;
+                }
+                default:
+                    std::runtime_error ("Bad wrapper type in UnOpPrint ()");       
+            }
+            
+        }
     };
 
     struct UnOpMinus {

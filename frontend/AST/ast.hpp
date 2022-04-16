@@ -15,6 +15,7 @@ namespace AST {
     enum class NodeT {
 
         VARIABLE,
+        ARR_LIST,
         NUMBER,
         OPERATOR,
 
@@ -56,6 +57,8 @@ namespace AST {
         // Setters and getters
 
         NodeT getType () const { return type_; }
+
+        std::vector<Node *> getChildrenSlow () const { return children_; }
 
         template <typename It>
         void setChildren (It start, It fin)
@@ -251,6 +254,16 @@ namespace AST {
         void nodeDump (std::ostream &out) const override { out << value_; }
 
         int getValue () const { return value_; }
+    };
+
+    class ArrList final : public Node {
+
+    public:
+        ArrList (Node *parent = nullptr) : Node (NodeT::ARR_LIST, parent) {}
+        ArrList (yy::location loc, Node *parent = nullptr) : Node (NodeT::ARR_LIST, loc, parent) {}
+
+        void nodeDump (std::ostream &out) const override { out << "ARR_LIST"; }
+
     };
 
     class ScopeNode final : public Node {
