@@ -134,6 +134,9 @@ namespace {
 %type <AST::Node*>                  term
 %type <AST::Node*>                  atomic
 
+%type <AST::Node*>                  array
+
+
 %type <AST::Node*>                  assignment
 
 %type <AST::Node*>                  statement
@@ -157,6 +160,7 @@ namespace {
 %type <std::vector<AST::Node*>*>    expA
 
 %type <std::vector<AST::Node*>*>    statementHandler
+
 
 %start translationStart
 
@@ -232,7 +236,16 @@ args                        :   ID                              {
                                                                     AST::VarNode* newParam = new AST::VarNode ($3, @3);
                                                                     $1->push_back (newParam);
                                                                     $$ = $1;
-                                                                };
+                                                                }
+                            |   array                           {   
+                                                                    $$ = new std::vector <AST::Node*>;
+                                                                    $$->push_back ($1);
+                                                                }
+                            |   args COMMA array                {   
+                                                                    $1->push_back ($3);
+                                                                    $$ = $1;
+                                                                }
+                            
 
 exprList                    :   OPCIRCBRACK expA CLCIRCBRACK    {   $$ = $2;        }
                             |   OPCIRCBRACK CLCIRCBRACK         {   $$ = nullptr;   };
@@ -391,6 +404,14 @@ term                        :   atomic                          {   $$ = $1;    
                             |   OPCIRCBRACK assignStatement CLCIRCBRACK
                                                                 {   $$ = $2;    };
 
+array                       :   OPSQBRACK expA CLSQBRACK        {
+                                                                    $$ = new AST::ArrList (@1);
+                                                                    if ($2) {
+                                                                        for (auto v: *($2))
+                                                                            $$->addChild (v);
+                                                                        delete $2;
+                                                                    }
+                                                                };
 atomic                      :   NUMBER                          {   $$ = new AST::NumNode   ($1);                                   }
                             |   SCAN                            {   $$ = new AST::OperNode  (AST::OperNode::OperType::SCAN, @1);    }
                             |   ID exprList                     {
@@ -408,14 +429,7 @@ atomic                      :   NUMBER                          {   $$ = new AST
                                                                     $$->addChild (funcArgs);
 
                                                                 }
-                            |   OPSQBRACK expA CLSQBRACK        {
-                                                                    $$ = new AST::ArrList (@1);
-                                                                    if ($2) {
-                                                                        for (auto v: *($2))
-                                                                            $$->addChild (v);
-                                                                        delete $2;
-                                                                    }
-                                                                }
+                            |   array                           {                                $$ = $1;                           }
                             |   ID                              {   $$ = new AST::VarNode   ($1, @1);                               };
 
 %%
