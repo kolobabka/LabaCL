@@ -414,6 +414,26 @@ namespace interpret {
 
     int getTopAndPopNum (Context &context);
     ScopeTblWrapper *getTopAndPopCalcStack (Context &context);
+    
+    struct UnOpSizeof {
+        void operator() (Context &context) const 
+        {
+            auto res = getTopAndPopCalcStack (context);
+            switch (res->type_)
+            {
+                case ScopeTblWrapper::WrapperType::NUM:
+                    context.calcStack_.push_back (context.buildScopeWrapper (1));
+                    break;
+                case ScopeTblWrapper::WrapperType::ARR_LIST: {
+                    const std::vector<int>& list = static_cast<ArrListScope *> (res)->list_;
+                    context.calcStack_.push_back (context.buildScopeWrapper (list.size()));
+                    break;
+                }
+                default:
+                    throw std::runtime_error ("Bad wrapper type in Sizeof ()");       
+            }
+        }
+    };
 
     struct UnOpPrint {
         void operator() (Context &context) const 
@@ -434,9 +454,8 @@ namespace interpret {
                     break;
                 }
                 default:
-                    std::runtime_error ("Bad wrapper type in UnOpPrint ()");       
+                    throw std::runtime_error ("Bad wrapper type in UnOpPrint ()");       
             }
-            
         }
     };
 

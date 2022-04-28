@@ -236,7 +236,8 @@ namespace AST {
             SCAN,   // a = ?
             PRINT,  // print (a)
 
-            GET,
+            GET,    // get(arr, i)
+            SIZEOF, // sizeof (arr)
 
             RETURN,  // return ...
             CALL
