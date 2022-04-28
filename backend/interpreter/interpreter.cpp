@@ -40,6 +40,14 @@ namespace interpret {
             throw std::runtime_error ("Unexpected operator type");
         }
 
+        EvalApplyNode *buildApplyNodeFromTexFuncs (const AST::TexApplies *texNode, EvalApplyNode *parent)
+        {
+            // switch (texNode->getTexType ()) {
+                // case AST::TexApplies::TexFuncTypes::ADD_SECTION:
+                    // return new EABinOp<>
+            // }
+        }
+
         EvalApplyNode *buildApplyNodeFromVariable (const AST::VarNode *varNode, EvalApplyNode *parent)
         {
             return (new EAVar (varNode, parent));
@@ -108,6 +116,11 @@ namespace interpret {
             case AST::NodeT::INLINESCOPE:
                 rubbishEANodeStack_.push_back (
                     buildApplyNodeFromInlineScope (static_cast<const AST::InlineScopeNode *> (node), parent));
+                return rubbishEANodeStack_.back ();
+            case AST::NodeT::TEX_FUNC:
+                rubbishEANodeStack_.push_back   (
+                    buildApplyNodeFromTexFuncs (static_cast<const AST::TexApplies *> (node), parent)
+                );
                 return rubbishEANodeStack_.back ();
         }
 

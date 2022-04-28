@@ -12,7 +12,7 @@ __average_val = func (arr) {
 	result = result / arr_size;
 
 }
-
+//paths for std lib
 __average_val_range = func (arr, st, fin) {
 
 	result = 0;
