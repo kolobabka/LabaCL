@@ -183,6 +183,7 @@ void SemanticAnalyzer::AnalyzeScopes (Scope *curScope, AST::ScopeNode *node)
         AST::Node *nodeToCheck = *stBegin;
         switch (nodeToCheck->getType ()) {
             case AST::NodeT::OPERATOR: {
+                
                 CheckExprScope (curScope, static_cast<AST::OperNode *> (nodeToCheck));
                 break;
             }
@@ -273,10 +274,13 @@ void SemanticAnalyzer::CheckAssignStatementScope (Scope *curScope, AST::OperNode
     std::pair<Scope *, Scope::tblIt> findRes = curScope->smartLookup (name);
 
     if (findRes.first == nullptr) {  // new var
+
         CreateNewObjectInScope (curScope, node, clearID);
     }
-    else
+    else {
+
         HandleExistVarInScope (curScope, clearID, node, findRes);
+    }
 }
 
 void SemanticAnalyzer::CheckScopeVarInExpr (Scope *curScope, AST::VarNode *node)
@@ -362,6 +366,7 @@ void SemanticAnalyzer::CheckExprScope (Scope *curScope, AST::OperNode *node)
             CheckUnaryOperScope (curScope, node);
             break;
         }
+        case AST::OperNode::OperType::GET:
         case AST::OperNode::OperType::ADD:
         case AST::OperNode::OperType::SUB:
         case AST::OperNode::OperType::MUL:
@@ -389,6 +394,7 @@ void SemanticAnalyzer::CheckUnaryOperScope (Scope *curScope, AST::Node *node)
     AST::Node *leftChild = node->getLeftChild ();
 
     if (leftChild->getType () == AST::NodeT::OPERATOR) {
+
         AST::OperNode *someOperator = static_cast<AST::OperNode *> (leftChild);
         if (someOperator->getOpType () == AST::OperNode::OperType::ASSIGN) {
             CheckAssignStatementScope (curScope, someOperator);
@@ -413,10 +419,12 @@ void SemanticAnalyzer::HandleBinaryOperation (Scope *curScope, AST::Node *node)
                 CheckScopeVarInExpr (curScope, static_cast<AST::VarNode *> (curNodeFromExpr));
                 break;
             }
+            case AST::NodeT::ARR_LIST: 
             case AST::NodeT::NUMBER: {
                 break;
             }
-            default: pushError_ (curNodeFromExpr->getLocation (), "unexpected operator in expression");
+            default: 
+                pushError_ (curNodeFromExpr->getLocation (), "unexpected operator in expression");
         }
     }
 }
@@ -435,6 +443,7 @@ void SemanticAnalyzer::BuildExecStackFromExpression (std::vector<AST::Node *> &e
 
         switch (curNode->getType ()) {
             case AST::NodeT::NUMBER:
+            case AST::NodeT::ARR_LIST:
             case AST::NodeT::VARIABLE: {
                 execVector.push_back (curNode);
                 break;
@@ -512,10 +521,12 @@ void SemanticAnalyzer::CheckOperatorInExpr (Scope *curScope, AST::OperNode *node
     switch (opType) {  //! TODO is it all?
 
         case AST::OperNode::OperType::CALL: {
+            
             CheckCallOperatorInExpr (curScope, node);
             break;
         }
         case AST::OperNode::OperType::ASSIGN: {
+
             CheckAssignStatementScope (curScope, node);
             break;
         }

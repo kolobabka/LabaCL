@@ -21,6 +21,7 @@ namespace interpret {
                 case AST::OperNode::OperType::UNARY_M: return new EAUnOp<UnOpMinus> (opNode, parent);
                 case AST::OperNode::OperType::UNARY_P: return new EAUnOp<UnOpPlus> (opNode, parent);
                 case AST::OperNode::OperType::PRINT: return new EAUnOp<UnOpPrint> (opNode, parent);
+                case AST::OperNode::OperType::GET: return new EABinOp<BinOpGet> (opNode, parent);
                 case AST::OperNode::OperType::ADD: return new EABinOp<BinOpAdd> (opNode, parent);
                 case AST::OperNode::OperType::SUB: return new EABinOp<BinOpSub> (opNode, parent);
                 case AST::OperNode::OperType::MUL: return new EABinOp<BinOpMul> (opNode, parent);
@@ -207,16 +208,22 @@ namespace interpret {
         EvalApplyNode *expr = context.buildApplyNode (root_, nullptr);
         while (expr) {
             // next to implement and prev
-            std::pair<EvalApplyNode *, EvalApplyNode *> res = expr->eval (context);
+            try {
+                std::pair<EvalApplyNode *, EvalApplyNode *> res = expr->eval (context);
 
-            context.prev_ = res.second;
+                context.prev_ = res.second;
 
-            auto pred = res.first;
-            if (pred) {
-                expr = pred;
+                auto pred = res.first;
+                if (pred) {
+                    expr = pred;
+                }
+                else
+                    break;
             }
-            else
-                break;
+            catch (std::runtime_error &err) {
+
+                throw err;
+            }
         }
     }
 

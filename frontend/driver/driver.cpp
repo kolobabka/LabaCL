@@ -7,7 +7,7 @@
 
 int yyFlexLexer::yywrap () { return 1; }
 
-int main (int argc, char **argv)
+int main (int argc, char **argv) try
 {
     InputHandler input;
 
@@ -39,10 +39,16 @@ int main (int argc, char **argv)
         driver.printWarnings ();
     }
 
+
     driver.printError ();
 
     std::cin.rdbuf (cinbuf);
 
-    if (driver.isNoErrors ())
+    // return 0;
+
+    if (driver.isNoErrors ()) 
         driver.interpret ();
+}
+catch (std::runtime_error &err) {
+    std::cout << err.what() << std::endl;
 }

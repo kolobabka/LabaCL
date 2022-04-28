@@ -147,7 +147,7 @@ namespace yy {
 
         std::vector<std::string>::const_iterator errEnd () const { return error_.cend (); }
 
-        bool parse ()
+        bool parse () 
         {
             parser parser (this);
             bool res = parser.parse ();
@@ -161,7 +161,13 @@ namespace yy {
         void interpret ()
         {
             interpret::Interpreter interpret (static_cast<AST::ScopeNode *> (tree_.getRoot ()));
-            interpret.run ();
+            try {
+                interpret.run ();
+            }
+            catch (std::runtime_error &err) {
+
+                throw err;
+            }
         }
     };
 
