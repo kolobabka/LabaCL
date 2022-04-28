@@ -70,6 +70,7 @@ namespace {
 %locations
 
 %token <int>                NUMBER
+%token <std::string>        TEXT
 %token <std::string>        ID
 
 %token                      ASSIGN      "="
@@ -93,7 +94,11 @@ namespace {
 %token                      IF          "if"
 
 %token                      WHILE       "while"
+
 %token                      PRINT       "print"
+
+%token                      TEX_ADD_SECTION "tex_add_section"
+%token                      TEX_ADD_TEXT    "tex_add_text"
 
 %token                      OPCIRCBRACK "("
 %token                      CLCIRCBRACK ")"
@@ -149,6 +154,7 @@ namespace {
 %type <AST::Node*>                  conditionExpression
 
 %type <AST::Node*>                  printStatement
+%type <AST::Node*>                  texStatement
 
 %type <AST::Node*>                  func
 %type <AST::Node*>                  returnStatement
@@ -214,6 +220,7 @@ statement                   :   assignment                      {   $$ = $1;    
                             |   whileStatement                  {   $$ = $1;    }
                             |   orStatement SEMICOLON           {   $$ = $1;    }
                             |   printStatement                  {   $$ = $1;    }
+                            |   texStatement                    {   $$ = $1;    }
                             |   returnStatement                 {   $$ = $1;    }
                             |   error SEMICOLON                 {   driver->pushError (@1, "Undefined statement");  $$ = nullptr;   }
                             |   error END                       {   driver->pushError (@1, "Undefined statement");  $$ = nullptr;   };
@@ -223,6 +230,23 @@ returnStatement             :   RET assignStatement SEMICOLON   {   $$ = makeUna
 printStatement              :   PRINT assignStatement SEMICOLON {   $$ = makeUnaryOperNode (AST::OperNode::OperType::PRINT, $2, @1);     }
                             |   PRINT error SEMICOLON           {   driver->pushError (@2, "Undefined expression in print");    $$ = nullptr;   }
                             |   PRINT error END                 {   driver->pushError (@2, "Undefined expression in print");    $$ = nullptr;   };
+
+texStatement                :   TEX_ADD_SECTION exprList SEMICOLON  {
+                                                                        $$ = new AST::TexApplies (@1, AST::TexApplies::TexFuncTypes::ADD_SECTION);
+                                                                        if ($2) {
+                                                                            for (auto v: *($2))
+                                                                                $$->addChild (v);
+                                                                            delete $2;
+                                                                        }
+                                                                    }
+                            |   TEX_ADD_TEXT exprList SEMICOLON     {
+                                                                        $$ = new AST::TexApplies (@1, AST::TexApplies::TexFuncTypes::ADD_TEXT);
+                                                                        if ($2) {
+                                                                            for (auto v: *($2))
+                                                                                $$->addChild (v);
+                                                                            delete $2;
+                                                                        }
+                                                                    };
 
 argsList                    :   OPCIRCBRACK args CLCIRCBRACK    {   $$ = $2;        }
                             |   OPCIRCBRACK CLCIRCBRACK         {   $$ = nullptr;   };
@@ -429,7 +453,8 @@ atomic                      :   NUMBER                          {   $$ = new AST
                                                                     $$->addChild (funcArgs);
 
                                                                 }
-                            |   array                           {                                $$ = $1;                           }
+                            |   array                           {   $$ = $1;                                                        }
+                            |   TEXT                            {   $$ = new AST::TextNode  ($1, @1);                               }
                             |   ID                              {   $$ = new AST::VarNode   ($1, @1);                               };
 
 %%

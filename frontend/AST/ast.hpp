@@ -17,6 +17,8 @@ namespace AST {
         VARIABLE,
         ARR_LIST,
         NUMBER,
+        TEXT,
+        TEX_FUNC,
         OPERATOR,
 
         CONDITION,
@@ -138,6 +140,37 @@ namespace AST {
         std::string getName () const { return name_; }
     };
 
+    class TexApplies final : public Node {
+    public:
+        enum class TexFuncTypes {
+            ADD_SECTION,
+            ADD_TEXT
+        };
+
+    private:
+        TexFuncTypes type_;
+
+    public:
+        TexApplies (yy::location loc, TexFuncTypes type, Node *parent = nullptr)
+            : Node (NodeT::TEX_FUNC, loc, parent), type_ (type) {}
+
+        void nodeDump (std::ostream &out) const override {
+
+            switch (type_) {
+                case TexFuncTypes::ADD_SECTION:
+                    out << "tex_add_section";
+                    break;
+                case TexFuncTypes::ADD_TEXT:
+                    out << "tex_add_text";
+                    break;
+                default:
+                    throw std::runtime_error ("unexpected tex function type");
+            }
+
+        }
+
+    };
+
     class FuncNode final : public Node {
     public:
         enum class FuncComponents {
@@ -256,6 +289,21 @@ namespace AST {
         int getValue () const { return value_; }
     };
 
+    class TextNode final : public Node {
+        std::string text_;
+
+    public:
+        TextNode (const std::string &text, yy::location loc, Node *parent = nullptr)
+            : Node (NodeT::TEXT, loc, parent), text_ (text)
+        {
+        }
+
+        void nodeDump (std::ostream &out) const override { out << text_; }
+
+        std::string getName () const { return text_; }
+
+    };
+
     class ArrList final : public Node {
 
     public:
@@ -265,6 +313,8 @@ namespace AST {
         void nodeDump (std::ostream &out) const override { out << "ARR_LIST"; }
 
     };
+
+    
 
     class ScopeNode final : public Node {
     public:

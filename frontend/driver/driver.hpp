@@ -56,6 +56,13 @@ namespace yy {
                     yylval->build<std::string> () = lexer_->YYText ();
                     break;
                 }
+                case yy::parser::token_type::TEXT: {
+                    std::string beforeFilter = lexer_->YYText ();
+                    std::string afterFilter;
+                    std::remove_copy(beforeFilter.begin(), beforeFilter.end(), back_inserter(afterFilter), '"');
+                    yylval->build<std::string> () = afterFilter;
+                    break;
+                }
                 case yy::parser::token_type::LEXERR: {
                     throw std::runtime_error ("Unexpected word");
                 }

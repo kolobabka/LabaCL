@@ -23,6 +23,8 @@ WORD                    ({ALPHA}|"_")({ALPHA}|{DIGIT}|"_")*
 ONE_LINE_COMMENT        "//".*
 MULTILINE_COMMENT       "/*"(.|\n)*"*/"
 
+STRING                  \"(\\.|[^\"])*\"
+
 %%
 
 {TRASH_SYMBS}           {   /*skip*/    }
@@ -72,7 +74,11 @@ MULTILINE_COMMENT       "/*"(.|\n)*"*/"
 "func"                  {   return yy::parser::token_type::FUNC_DECL;   }
 "return"                {   return yy::parser::token_type::RET;         }
 
+"tex_add_section"       {   return yy::parser::token_type::TEX_ADD_SECTION; }
+"tex_add_text"          {   return yy::parser::token_type::TEX_ADD_TEXT;    }
+
 {WORD}                  {   return yy::parser::token_type::ID;          }
+{STRING}                {   return yy::parser::token_type::TEXT;        }
 
 .                       {   return yy::parser::token_type::LEXERR;      }
 

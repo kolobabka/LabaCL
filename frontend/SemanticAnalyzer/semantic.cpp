@@ -190,6 +190,8 @@ void SemanticAnalyzer::AnalyzeScopes (Scope *curScope, AST::ScopeNode *node)
                 CheckCondScope (curScope, static_cast<AST::CondNode *> (nodeToCheck));
                 break;
             }
+            case AST::NodeT::TEX_FUNC:
+                break;
             default: pushError_ (nodeToCheck->getLocation (), "unexpected statement type");
         }
     }
