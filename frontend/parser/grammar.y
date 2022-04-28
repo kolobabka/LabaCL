@@ -94,6 +94,8 @@ namespace {
 
 %token                      WHILE       "while"
 %token                      PRINT       "print"
+%token                      GET         "get"
+
 
 %token                      OPCIRCBRACK "("
 %token                      CLCIRCBRACK ")"
@@ -149,6 +151,8 @@ namespace {
 %type <AST::Node*>                  conditionExpression
 
 %type <AST::Node*>                  printStatement
+%type <AST::Node*>                  getStatement
+
 
 %type <AST::Node*>                  func
 %type <AST::Node*>                  returnStatement
@@ -214,11 +218,16 @@ statement                   :   assignment                      {   $$ = $1;    
                             |   whileStatement                  {   $$ = $1;    }
                             |   orStatement SEMICOLON           {   $$ = $1;    }
                             |   printStatement                  {   $$ = $1;    }
+                            |   getStatement                    {   $$ = $1;    }
                             |   returnStatement                 {   $$ = $1;    }
                             |   error SEMICOLON                 {   driver->pushError (@1, "Undefined statement");  $$ = nullptr;   }
                             |   error END                       {   driver->pushError (@1, "Undefined statement");  $$ = nullptr;   };
 
 returnStatement             :   RET assignStatement SEMICOLON   {   $$ = makeUnaryOperNode (AST::OperNode::OperType::RETURN, $2, @1);   };                                    
+
+getStatement                :   GET exprList SEMICOLON          {   $$ = makeBinOperNode (AST::OperNode::OperType::GET, (*$2)[0], (*$2)[1], @1);          }
+                            |   GET error SEMICOLON             {   driver->pushError (@2, "Undefined expression in get");    $$ = nullptr;   }
+                            |   GET error END                   {   driver->pushError (@2, "Undefined expression in get");    $$ = nullptr;   };
 
 printStatement              :   PRINT assignStatement SEMICOLON {   $$ = makeUnaryOperNode (AST::OperNode::OperType::PRINT, $2, @1);     }
                             |   PRINT error SEMICOLON           {   driver->pushError (@2, "Undefined expression in print");    $$ = nullptr;   }
@@ -321,6 +330,7 @@ assignment                  :   ID ASSIGN assignStatement SEMICOLON
                                                                 {   $$ = makeAssign ($1, $3, @2, @1);   }
                             |   ID ASSIGN func SEMICOLON        {   $$ = makeAssign ($1, $3, @2, @1);   }
                             |   ID ASSIGN func                  {   $$ = makeAssign ($1, $3, @2, @1);   }
+                            |   ID ASSIGN getStatement                  {   $$ = makeAssign ($1, $3, @2, @1);   }
                             |   ID ASSIGN error SEMICOLON       {   driver->pushError (@3, "Bad expression after assignment");  
                                                                     $$ = nullptr;   
                                                                 }

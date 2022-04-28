@@ -1,30 +1,30 @@
-__average_val = func (arr) {
+// __average_val = func (arr) {
 
-	result = 0;
+// 	result = 0;
 
-	i = 0;
-	arr_size = sizeof (arr);
-	while (i != arr_size) {
-		result += arr [i]
-		i = i + 1;
-	}
+// 	i = 0;
+// 	arr_size = sizeof (arr);
+// 	while (i != arr_size) {
+// 		result += arr [i]
+// 		i = i + 1;
+// 	}
 
-	result = result / arr_size;
+// 	result = result / arr_size;
 
-}
+// }
 
-__average_val_range = func (arr, st, fin) {
+// __average_val_range = func (arr, st, fin) {
 
-	result = 0;
-	i = st;
-	while (i != fin) {
-		result += arr [i]
-		i = i + 1;
-	}
+// 	result = 0;
+// 	i = st;
+// 	while (i != fin) {
+// 		result += arr [i]
+// 		i = i + 1;
+// 	}
 
-	result = result / (fin - st);
+// 	result = result / (fin - st);
 
-}
+// }
 
 __root_mean_square_error = func (arr) {
 
@@ -34,7 +34,7 @@ __root_mean_square_error = func (arr) {
 	arr_size = sizeof (arr);
 	i = 0;
 	while (i != arr_size) {
-		numerator = numerator + (arr [i] - average_val) * (arr [i] - average_val);
+		numerator = numerator  + (get(arr, i) - average_val) /* * (arr [i] - average_val) */;
 		i = i + 1;
 	}
 	

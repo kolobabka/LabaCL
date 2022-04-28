@@ -35,6 +35,8 @@ MULTILINE_COMMENT       "/*"(.|\n)*"*/"
 "while"                 {   return yy::parser::token_type::WHILE;       }
 
 "print"                 {   return yy::parser::token_type::PRINT;       }
+"get"                   {   return yy::parser::token_type::GET;         }
+
 
 "?"                     {   return yy::parser::token_type::SCAN;        }
 

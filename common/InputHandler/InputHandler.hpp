@@ -11,10 +11,8 @@ namespace {
                                   std::ifstream& preCode)
     {
         std::string line;
-        while (preCode) {
-            std::getline (preCode, line);
+        while (std::getline (preCode, line)) 
             buf.push_back (line);
-        }
     }
 
     void handleImportStmts (std::vector<std::string>& buffer) {
@@ -71,12 +69,14 @@ struct Preprocessor final {
         if (!preCode.is_open ()) { throw std::runtime_error ("Can't open input file"); }
 
         buildPreprocessorBuffer (originalBuffer_, preCode);
+
         preprocessedBuffer_ = originalBuffer_;
 
         handleImportStmts (preprocessedBuffer_);
 
         std::string containStr;
         for (std::size_t i = 0; i < preprocessedBuffer_.size (); ++i) {
+            
             containStr += preprocessedBuffer_ [i] + '\n';
         }
 

@@ -472,6 +472,42 @@ namespace interpret {
         }
     }
 
+    namespace {
+
+        void getElemFromArray (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
+
+            const std::vector<int>& list = static_cast<ArrListScope *> (first)->list_;
+            const int index = static_cast<NumScope *> (second)->val_;
+
+            if (index >= list.size())
+                throw std::runtime_error ("Attempt to get non-existent element from array");
+
+            context.calcStack_.push_back (context.buildScopeWrapper (list[index]));
+        }
+    }
+
+    struct BinOpGet {
+
+        void operator () (Context &context) const 
+        {
+            auto first = getTopAndPopCalcStack (context);
+            auto second = getTopAndPopCalcStack (context);
+
+            if (second->type_ != ScopeTblWrapper::WrapperType::ARR_LIST)
+                throw std::runtime_error ("Attempt to apply operator get to non-array entity");
+
+            if (first->type_ != ScopeTblWrapper::WrapperType::NUM)  
+                throw std::runtime_error ("Non-integer index");
+
+            try {
+                getElemFromArray (context, second, first);
+            }
+            catch (std::runtime_error &err) {                    
+                throw err;
+            }
+        } 
+    };
+
     struct BinOpAdd {
 
 

@@ -203,6 +203,8 @@ namespace AST {
             SCAN,   // a = ?
             PRINT,  // print (a)
 
+            GET,
+
             RETURN,  // return ...
             CALL
 
@@ -238,6 +240,7 @@ namespace AST {
                 case OperType::AND: out << "AND (&&)"; break;
                 case OperType::MOD: out << "MOD (%)"; break;
                 case OperType::PRINT: out << "PRINT [print ()]"; break;
+                case OperType::GET: out << "GET [get ()]"; break;
                 case OperType::RETURN: out << "RETURN"; break;
                 case OperType::CALL: out << "CALL"; break;
                 default: out << "Unexpected operator type!";
