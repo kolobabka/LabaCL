@@ -22,6 +22,12 @@ namespace interpret {
                 case AST::OperNode::OperType::UNARY_P: return new EAUnOp<UnOpPlus> (opNode, parent);
                 case AST::OperNode::OperType::PRINT: return new EAUnOp<UnOpPrint> (opNode, parent);
                 case AST::OperNode::OperType::GET: return new EABinOp<BinOpGet> (opNode, parent);
+                case AST::OperNode::OperType::Tex_ADD_TEXT: return new EABinOp<BinOpTexAddText> (opNode, parent);
+                case AST::OperNode::OperType::Tex_ADD_SECTION: return new EABinOp<BinOpTexAddSection> (opNode, parent);
+                case AST::OperNode::OperType::Tex_ADD_CONTENT: return new EAUnOp<UnOpTexAddContent> (opNode, parent);
+                case AST::OperNode::OperType::Tex_ADD_END: return new EAUnOp<UnOpTexAddEnd> (opNode, parent);
+                case AST::OperNode::OperType::Tex_ADD_HEAD: return new EATernOp<TernOpTexAddHead> (opNode, parent);
+                case AST::OperNode::OperType::Tex_COMPILE: return new EAUnOp<UnOpTexCompile> (opNode, parent);
                 case AST::OperNode::OperType::ADD: return new EABinOp<BinOpAdd> (opNode, parent);
                 case AST::OperNode::OperType::SUB: return new EABinOp<BinOpSub> (opNode, parent);
                 case AST::OperNode::OperType::MUL: return new EABinOp<BinOpMul> (opNode, parent);
@@ -39,14 +45,6 @@ namespace interpret {
             }
 
             throw std::runtime_error ("Unexpected operator type");
-        }
-
-        EvalApplyNode *buildApplyNodeFromTexFuncs (const AST::TexApplies *texNode, EvalApplyNode *parent)
-        {
-            // switch (texNode->getTexType ()) {
-                // case AST::TexApplies::TexFuncTypes::ADD_SECTION:
-                    // return new EABinOp<>
-            // }
         }
 
         EvalApplyNode *buildApplyNodeFromVariable (const AST::VarNode *varNode, EvalApplyNode *parent)
@@ -67,6 +65,11 @@ namespace interpret {
         EvalApplyNode *buildApplyNodeFromNumber (const AST::NumNode *numNode, EvalApplyNode *parent)
         {
             return new EANum (numNode, parent);
+        }
+
+        EvalApplyNode *buildApplyNodeFromText (const AST::TextNode *textNode, EvalApplyNode *parent)
+        {
+            return new EAText (textNode, parent);
         }
 
         EvalApplyNode *buildApplyNodeFromScope (const AST::ScopeNode *scopeNode,
@@ -110,6 +113,11 @@ namespace interpret {
                 rubbishEANodeStack_.push_back (
                     buildApplyNodeFromNumber (static_cast<const AST::NumNode *> (node), parent));
                 return rubbishEANodeStack_.back ();
+            case AST::NodeT::TEXT:
+                rubbishEANodeStack_.push_back (
+                    buildApplyNodeFromText (static_cast<const AST::TextNode *> (node), parent)
+                );
+                return rubbishEANodeStack_.back ();
             case AST::NodeT::SCOPE:
                 rubbishEANodeStack_.push_back (
                     buildApplyNodeFromScope (static_cast<const AST::ScopeNode *> (node), parent, *this));
@@ -117,11 +125,6 @@ namespace interpret {
             case AST::NodeT::INLINESCOPE:
                 rubbishEANodeStack_.push_back (
                     buildApplyNodeFromInlineScope (static_cast<const AST::InlineScopeNode *> (node), parent));
-                return rubbishEANodeStack_.back ();
-            case AST::NodeT::TEX_FUNC:
-                rubbishEANodeStack_.push_back   (
-                    buildApplyNodeFromTexFuncs (static_cast<const AST::TexApplies *> (node), parent)
-                );
                 return rubbishEANodeStack_.back ();
         }
 
@@ -304,6 +307,12 @@ namespace interpret {
     std::pair<EvalApplyNode *, EvalApplyNode *> EANum::eval (Context &context)
     {
         context.calcStack_.push_back (context.buildScopeWrapper (val_));
+        return {parent_, this};
+    }
+
+    std::pair<EvalApplyNode *, EvalApplyNode *> EAText::eval (Context &context)
+    {
+        context.calcStack_.push_back (context.buildScopeWrapper (text_));
         return {parent_, this};
     }
 

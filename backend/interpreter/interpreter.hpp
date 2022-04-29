@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <fstream>
 
 #include "ast.hpp"
 #include "location.hh"
@@ -26,7 +27,8 @@ namespace interpret {
             NUM,
             FUNC,
             ARR_LIST,
-            INLINE
+            INLINE,
+            TEXT
 
         };
 
@@ -39,6 +41,12 @@ namespace interpret {
         int val_;
 
         NumScope (const int val) : ScopeTblWrapper (ScopeTblWrapper::WrapperType::NUM), val_ (val) {}
+    };
+
+    struct TextScope final : public ScopeTblWrapper {
+        std::string text_;
+
+        TextScope (const std::string str) : ScopeTblWrapper (ScopeTblWrapper::WrapperType::TEXT), text_ (str) {}
     };
 
     struct ArrListScope final : public ScopeTblWrapper {
@@ -201,6 +209,19 @@ namespace interpret {
         std::pair<EvalApplyNode *, EvalApplyNode *> eval (Context &context) override;
     };
 
+    class EAText final : public EvalApplyNode {
+        std::string text_;
+
+    public:
+        EAText (const AST::TextNode *textNode, EvalApplyNode *parent)
+            : EvalApplyNode (textNode, parent), text_ (textNode->getText ())
+        {}
+
+        std::string getText () const { return text_; }
+
+        std::pair<EvalApplyNode *, EvalApplyNode *> eval (Context &context) override;
+    };
+
     class EAVar final : public EvalApplyNode {
         std::string name_;
 
@@ -322,6 +343,12 @@ namespace interpret {
             return static_cast<NumScope *> (rubbishCalcStack_.back ());
         }
 
+        TextScope *buildScopeWrapper (const std::string text)
+        {
+            rubbishCalcStack_.push_back (new TextScope (text));
+            return static_cast<TextScope *> (rubbishCalcStack_.back ());
+        }
+
         FuncScope *buildScopeWrapper (const AST::FuncNode *funcDecl)
         {
             rubbishCalcStack_.push_back (new FuncScope (funcDecl));
@@ -363,6 +390,40 @@ namespace interpret {
                 return {parent_, this};
             }
             else if (prevExec == lhs) {
+                EvalApplyNode *rhsToExec = context.buildApplyNode (rhs, this);
+                return {rhsToExec, this};
+            }
+
+            EvalApplyNode *lhsToExec = context.buildApplyNode (lhs, this);
+            return {lhsToExec, this};
+        }
+    };
+
+    template <typename operApp>
+    class EATernOp final : public EvalApplyNode {
+        operApp apply_;
+
+    public:
+        EATernOp (const AST::OperNode *astOper, EvalApplyNode *parent) : EvalApplyNode (astOper, parent) {}
+
+        std::pair<EvalApplyNode *, EvalApplyNode *> eval (Context &context) override
+        {
+            const AST::Node *node = EvalApplyNode::getNode ();
+            const AST::Node *rhs = (*node)[2];
+            const AST::Node *mhs = (*node)[1];
+            const AST::Node *lhs = (*node)[0];
+
+            const AST::Node *prevExec = context.prev_->getNode ();
+
+            if (prevExec == rhs) {
+                apply_ (context);
+                return {parent_, this};
+            }
+            else if (prevExec == lhs) {
+                EvalApplyNode *mhsToExec = context.buildApplyNode (mhs, this);
+                return {mhsToExec, this};
+            }
+            else if (prevExec == mhs) {
                 EvalApplyNode *rhsToExec = context.buildApplyNode (rhs, this);
                 return {rhsToExec, this};
             }
@@ -508,8 +569,153 @@ namespace interpret {
         } 
     };
 
-    struct BinOpAdd {
+    struct BinOpTexAddText {
 
+        void operator () (Context &context) const 
+        {
+            auto first = getTopAndPopCalcStack (context);
+            auto second = getTopAndPopCalcStack (context);
+
+            if (first->type_ != ScopeTblWrapper::WrapperType::TEXT)
+                throw std::runtime_error ("Expected text");
+
+            if (second->type_ != ScopeTblWrapper::WrapperType::TEXT)  
+                throw std::runtime_error ("Expected file name");
+
+            std::ofstream opFile;
+            opFile.open (static_cast<TextScope *> (second)->text_, std::ios::app);
+            if (!opFile.is_open ())
+                throw std::runtime_error ("Can't open tex file to write in");
+            
+            opFile << std::endl << static_cast<TextScope *> (first)->text_ << std::endl;
+
+            opFile.close ();
+        }
+
+    };
+
+    struct BinOpTexAddSection {
+
+        void operator () (Context &context) const 
+        {
+            auto first = getTopAndPopCalcStack (context);
+            auto second = getTopAndPopCalcStack (context);
+
+            if (first->type_ != ScopeTblWrapper::WrapperType::TEXT)
+                throw std::runtime_error ("Expected section name");
+
+            if (second->type_ != ScopeTblWrapper::WrapperType::TEXT)  
+                throw std::runtime_error ("Expected file name");
+
+            std::ofstream opFile;
+            opFile.open (static_cast<TextScope *> (second)->text_, std::ios::app);
+            if (!opFile.is_open ())
+                throw std::runtime_error ("Can't open tex file to write in");
+
+            opFile << "\\section{" << (static_cast<TextScope *> (first)->text_) << "}" << std::endl;
+
+            opFile.close ();
+        }
+
+    };
+
+    struct UnOpTexAddContent {
+
+        void operator () (Context &context) const 
+        {
+            auto first = getTopAndPopCalcStack (context);
+
+            if (first->type_ != ScopeTblWrapper::WrapperType::TEXT)  
+                throw std::runtime_error ("Expected file name");
+
+            std::ofstream opFile;
+            opFile.open (static_cast<TextScope *> (first)->text_, std::ios::app);
+            if (!opFile.is_open ())
+                throw std::runtime_error ("Can't open tex file to write in");
+
+            opFile << "\\tableofcontents" << std::endl;
+
+            opFile.close ();
+        }
+
+    };
+
+    struct UnOpTexAddEnd {
+
+        void operator () (Context &context) const 
+        {
+            auto first = getTopAndPopCalcStack (context);
+
+            if (first->type_ != ScopeTblWrapper::WrapperType::TEXT)  
+                throw std::runtime_error ("Expected file name");
+
+            std::ofstream opFile;
+            opFile.open (static_cast<TextScope *> (first)->text_, std::ios::app);
+            if (!opFile.is_open ())
+                throw std::runtime_error ("Can't open tex file to write in");
+
+            opFile << std::endl << "\\end{document}" << std::endl;
+
+            opFile.close ();
+        }
+
+    };
+
+    struct UnOpTexCompile {
+
+        void operator () (Context &context) const 
+        {
+            auto first = getTopAndPopCalcStack (context);
+
+            if (first->type_ != ScopeTblWrapper::WrapperType::TEXT)  
+                throw std::runtime_error ("Expected file name");
+
+            std::string compileCommand = std::string ("latex ") + static_cast<TextScope *> (first)->text_;
+            system (compileCommand.c_str ());
+        }
+
+    };
+
+    struct TernOpTexAddHead {
+
+        void operator () (Context &context) const 
+        {
+            auto first = getTopAndPopCalcStack (context);
+            auto second = getTopAndPopCalcStack (context);
+            auto third = getTopAndPopCalcStack (context);
+
+            if (first->type_ != ScopeTblWrapper::WrapperType::TEXT)
+                throw std::runtime_error ("Expected author name");
+
+            if (second->type_ != ScopeTblWrapper::WrapperType::TEXT)  
+                throw std::runtime_error ("Expected title name");
+
+            if (third->type_ != ScopeTblWrapper::WrapperType::TEXT)
+                throw std::runtime_error ("Expected file name");
+
+            std::ofstream opFile;
+            opFile.open (static_cast<TextScope *> (third)->text_, std::ios::app);
+            if (!opFile.is_open ())
+                throw std::runtime_error ("Can't open tex file to write in");
+
+            opFile <<  "\\documentclass{article} \n"
+                       "\\usepackage[utf8]{inputenc} \n"
+                       "\\usepackage{hyperref}\n"
+                       "\\usepackage{indentfirst}\n"
+                       "\\title{" << static_cast<TextScope *> (second)->text_ << 
+                       "}\n"
+                       "\\author{" << static_cast<TextScope *> (first)->text_ <<
+                       "}\n"
+                       "\\date{}\n"
+                       "\\begin{document}\n"
+                       "\\maketitle\n" << std::endl;
+
+            opFile.close ();
+        }
+
+    };
+
+    struct BinOpAdd {
 
         void operator() (Context &context) const
         {

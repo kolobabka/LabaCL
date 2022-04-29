@@ -191,8 +191,6 @@ void SemanticAnalyzer::AnalyzeScopes (Scope *curScope, AST::ScopeNode *node)
                 CheckCondScope (curScope, static_cast<AST::CondNode *> (nodeToCheck));
                 break;
             }
-            case AST::NodeT::TEX_FUNC:
-                break;
             default: pushError_ (nodeToCheck->getLocation (), "unexpected statement type");
         }
     }
@@ -381,6 +379,14 @@ void SemanticAnalyzer::CheckExprScope (Scope *curScope, AST::OperNode *node)
         case AST::OperNode::OperType::AND:
         case AST::OperNode::OperType::MOD: HandleBinaryOperation (curScope, node); break;
         case AST::OperNode::OperType::CALL: CheckCallOperatorInExpr (curScope, node); break;
+
+        case AST::OperNode::OperType::Tex_ADD_SECTION:
+        case AST::OperNode::OperType::Tex_ADD_TEXT:
+        case AST::OperNode::OperType::Tex_ADD_HEAD:
+        case AST::OperNode::OperType::Tex_ADD_END:
+        case AST::OperNode::OperType::Tex_ADD_CONTENT:
+        case AST::OperNode::OperType::Tex_COMPILE:
+            break;
 
         default: pushError_ (node->getLocation (), "unexpected operator type");
     }

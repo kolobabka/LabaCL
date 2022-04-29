@@ -47,6 +47,17 @@ namespace {
         return newOperNode;
     }
 
+    AST::OperNode* makeTernOperNode (AST::OperNode::OperType type, 
+                                    AST::Node* firstChild, AST::Node* secondChild, AST::Node* thirdChild,
+                                    yy::location loc) {
+
+        AST::OperNode* newOperNode = new AST::OperNode (type, loc);
+        newOperNode->addChild (firstChild);
+        newOperNode->addChild (secondChild);
+        newOperNode->addChild (thirdChild);
+        return newOperNode;
+    }
+
     AST::CondNode* makeCondNode (AST::CondNode::ConditionType type, AST::Node* expr, 
                                  AST::Node* body, yy::location loc) {
 
@@ -101,6 +112,10 @@ namespace {
 
 %token                      TEX_ADD_SECTION "tex_add_section"
 %token                      TEX_ADD_TEXT    "tex_add_text"
+%token                      TEX_ADD_STD_HEAD"tex_add_std_head"
+%token                      TEX_ADD_END     "tex_add_end"
+%token                      TEX_ADD_CONTENT "tex_add_content"
+%token                      TEX_COMPILE     "tex_compile"
 
 %token                      OPCIRCBRACK "("
 %token                      CLCIRCBRACK ")"
@@ -156,12 +171,9 @@ namespace {
 %type <AST::Node*>                  conditionExpression
 
 %type <AST::Node*>                  printStatement
-<<<<<<< HEAD
 %type <AST::Node*>                  texStatement
-=======
 %type <AST::Node*>                  getStatement
 
->>>>>>> f8b0838c43aab03dfd237c3100717b6152dce373
 
 %type <AST::Node*>                  func
 %type <AST::Node*>                  returnStatement
@@ -244,20 +256,22 @@ printStatement              :   PRINT assignStatement SEMICOLON {   $$ = makeUna
                             |   PRINT error END                 {   driver->pushError (@2, "Undefined expression in print");    $$ = nullptr;   };
 
 texStatement                :   TEX_ADD_SECTION exprList SEMICOLON  {
-                                                                        $$ = new AST::TexApplies (@1, AST::TexApplies::TexFuncTypes::ADD_SECTION);
-                                                                        if ($2) {
-                                                                            for (auto v: *($2))
-                                                                                $$->addChild (v);
-                                                                            delete $2;
-                                                                        }
+                                                                        $$ = makeBinOperNode (AST::OperNode::OperType::Tex_ADD_SECTION, (*$2)[0], (*$2)[1], @1);
                                                                     }
                             |   TEX_ADD_TEXT exprList SEMICOLON     {
-                                                                        $$ = new AST::TexApplies (@1, AST::TexApplies::TexFuncTypes::ADD_TEXT);
-                                                                        if ($2) {
-                                                                            for (auto v: *($2))
-                                                                                $$->addChild (v);
-                                                                            delete $2;
-                                                                        }
+                                                                        $$ = makeBinOperNode (AST::OperNode::OperType::Tex_ADD_TEXT, (*$2)[0], (*$2)[1], @1);
+                                                                    }
+                            |   TEX_ADD_STD_HEAD exprList SEMICOLON {
+                                                                        $$ = makeTernOperNode (AST::OperNode::OperType::Tex_ADD_HEAD, (*$2) [0], (*$2)[1], (*$2)[2], @1);
+                                                                    }
+                            |   TEX_ADD_END exprList SEMICOLON      {
+                                                                        $$ = makeUnaryOperNode (AST::OperNode::OperType::Tex_ADD_END, (*$2) [0], @1);
+                                                                    }
+                            |   TEX_COMPILE exprList SEMICOLON      {
+                                                                        $$ = makeUnaryOperNode (AST::OperNode::OperType::Tex_COMPILE, (*$2) [0], @1);
+                                                                    }
+                            |   TEX_ADD_CONTENT exprList SEMICOLON  {
+                                                                        $$ = makeUnaryOperNode (AST::OperNode::OperType::Tex_ADD_CONTENT, (*$2) [0], @1);
                                                                     };
 
 argsList                    :   OPCIRCBRACK args CLCIRCBRACK    {   $$ = $2;        }

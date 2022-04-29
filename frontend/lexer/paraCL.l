@@ -79,6 +79,13 @@ STRING                  \"(\\.|[^\"])*\"
 "tex_add_section"       {   return yy::parser::token_type::TEX_ADD_SECTION; }
 "tex_add_text"          {   return yy::parser::token_type::TEX_ADD_TEXT;    }
 
+"tex_add_std_head"      {   return yy::parser::token_type::TEX_ADD_STD_HEAD;}
+"tex_add_end"           {   return yy::parser::token_type::TEX_ADD_END;     }
+
+"tex_add_content"       {   return yy::parser::token_type::TEX_ADD_CONTENT;     }
+
+"tex_compile"           {   return yy::parser::token_type::TEX_COMPILE; }
+
 {WORD}                  {   return yy::parser::token_type::ID;          }
 {STRING}                {   return yy::parser::token_type::TEXT;        }
 

@@ -18,7 +18,6 @@ namespace AST {
         ARR_LIST,
         NUMBER,
         TEXT,
-        TEX_FUNC,
         OPERATOR,
 
         CONDITION,
@@ -140,37 +139,6 @@ namespace AST {
         std::string getName () const { return name_; }
     };
 
-    class TexApplies final : public Node {
-    public:
-        enum class TexFuncTypes {
-            ADD_SECTION,
-            ADD_TEXT
-        };
-
-    private:
-        TexFuncTypes type_;
-
-    public:
-        TexApplies (yy::location loc, TexFuncTypes type, Node *parent = nullptr)
-            : Node (NodeT::TEX_FUNC, loc, parent), type_ (type) {}
-
-        void nodeDump (std::ostream &out) const override {
-
-            switch (type_) {
-                case TexFuncTypes::ADD_SECTION:
-                    out << "tex_add_section";
-                    break;
-                case TexFuncTypes::ADD_TEXT:
-                    out << "tex_add_text";
-                    break;
-                default:
-                    throw std::runtime_error ("unexpected tex function type");
-            }
-
-        }
-
-    };
-
     class FuncNode final : public Node {
     public:
         enum class FuncComponents {
@@ -238,6 +206,13 @@ namespace AST {
 
             GET,
 
+            Tex_ADD_SECTION,
+            Tex_ADD_TEXT,
+            Tex_ADD_HEAD,
+            Tex_ADD_END,
+            Tex_ADD_CONTENT,
+            Tex_COMPILE,
+
             RETURN,  // return ...
             CALL
 
@@ -276,6 +251,12 @@ namespace AST {
                 case OperType::GET: out << "GET [get ()]"; break;
                 case OperType::RETURN: out << "RETURN"; break;
                 case OperType::CALL: out << "CALL"; break;
+                case OperType::Tex_ADD_SECTION: out << "tex_add_section"; break;
+                case OperType::Tex_ADD_TEXT: out << "tex_add_text"; break;
+                case OperType::Tex_ADD_HEAD: out << "tex_add_std_head"; break;
+                case OperType::Tex_ADD_CONTENT: out << "tex_add_content"; break;
+                case OperType::Tex_ADD_END: out << "tex_add_end"; break;
+                case OperType::Tex_COMPILE: out << "tex_compile"; break;
                 default: out << "Unexpected operator type!";
             }
         }
@@ -303,7 +284,7 @@ namespace AST {
 
         void nodeDump (std::ostream &out) const override { out << text_; }
 
-        std::string getName () const { return text_; }
+        std::string getText () const { return text_; }
 
     };
 
