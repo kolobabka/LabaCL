@@ -652,7 +652,8 @@ namespace interpret {
             if (!opFile.is_open ())
                 throw std::runtime_error ("Can't open tex file to write in");
 
-            opFile << "\\tableofcontents" << std::endl;
+            opFile << "\\tableofcontents\n"
+                      "\\newpage\n\n";
 
             opFile.close ();
         }
