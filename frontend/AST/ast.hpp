@@ -204,7 +204,8 @@ namespace AST {
             SCAN,   // a = ?
             PRINT,  // print (a)
 
-            GET,
+            GET,    // get(arr, i)
+            SIZEOF, // sizeof (arr)
 
             Tex_ADD_SECTION,
             Tex_ADD_TEXT,

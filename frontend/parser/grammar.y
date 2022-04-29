@@ -108,6 +108,8 @@ namespace {
 
 %token                      PRINT       "print"
 %token                      GET         "get"
+%token                      SIZEOF      "sizeof"
+
 
 
 %token                      TEX_ADD_SECTION "tex_add_section"
@@ -173,6 +175,7 @@ namespace {
 %type <AST::Node*>                  printStatement
 %type <AST::Node*>                  texStatement
 %type <AST::Node*>                  getStatement
+%type <AST::Node*>                  sizeofStatement
 
 
 %type <AST::Node*>                  func
@@ -239,6 +242,7 @@ statement                   :   assignment                      {   $$ = $1;    
                             |   whileStatement                  {   $$ = $1;    }
                             |   orStatement SEMICOLON           {   $$ = $1;    }
                             |   printStatement                  {   $$ = $1;    }
+                            |   sizeofStatement                 {   $$ = $1;    }
                             |   texStatement                    {   $$ = $1;    }
                             |   getStatement                    {   $$ = $1;    }
                             |   returnStatement                 {   $$ = $1;    }
@@ -247,11 +251,26 @@ statement                   :   assignment                      {   $$ = $1;    
 
 returnStatement             :   RET assignStatement SEMICOLON   {   $$ = makeUnaryOperNode (AST::OperNode::OperType::RETURN, $2, @1);   };                                    
 
-getStatement                :   GET exprList SEMICOLON          {   $$ = makeBinOperNode (AST::OperNode::OperType::GET, (*$2)[0], (*$2)[1], @1);          }
+getStatement                :   GET exprList SEMICOLON          {   
+                                                                    if ((*$2).size() != 2) 
+                                                                        driver->pushError (@2, "Wrong number of arguments in operator get");                
+                                                                    $$ = makeBinOperNode (AST::OperNode::OperType::GET, (*$2)[0], (*$2)[1], @1);          
+                                                                }
                             |   GET error SEMICOLON             {   driver->pushError (@2, "Undefined expression in get");    $$ = nullptr;   }
                             |   GET error END                   {   driver->pushError (@2, "Undefined expression in get");    $$ = nullptr;   };
 
+sizeofStatement             :   SIZEOF exprList SEMICOLON       {   
+                                                                    if ((*$2).size() != 1) 
+                                                                        driver->pushError (@2, "Wrong number of arguments in operator sizeof");
+                                                                    $$ = makeUnaryOperNode (AST::OperNode::OperType::SIZEOF, (*$2)[0], @1);      
+                                                                }
+                            |   SIZEOF error SEMICOLON          {   driver->pushError (@2, "Undefined expression in sizeof");    $$ = nullptr;   }
+                            |   SIZEOF error END                {   driver->pushError (@2, "Undefined expression in sizeof");    $$ = nullptr;   };
+
+
 printStatement              :   PRINT assignStatement SEMICOLON {   $$ = makeUnaryOperNode (AST::OperNode::OperType::PRINT, $2, @1);     }
+                            |   PRINT getStatement              {   $$ = makeUnaryOperNode (AST::OperNode::OperType::PRINT, $2, @1);     }
+                            |   PRINT sizeofStatement           {   $$ = makeUnaryOperNode (AST::OperNode::OperType::PRINT, $2, @1);     }
                             |   PRINT error SEMICOLON           {   driver->pushError (@2, "Undefined expression in print");    $$ = nullptr;   }
                             |   PRINT error END                 {   driver->pushError (@2, "Undefined expression in print");    $$ = nullptr;   };
 
