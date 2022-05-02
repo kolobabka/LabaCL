@@ -10,6 +10,7 @@
 #include <utility>
 #include <vector>
 #include <fstream>
+#include <cmath>
 
 #include "ast.hpp"
 #include "location.hh"
@@ -492,6 +493,29 @@ namespace interpret {
                 }
                 default:
                     throw std::runtime_error ("Bad wrapper type in Sizeof ()");       
+            }
+        }
+    };
+
+    struct UnOpSqrt {
+        void operator() (Context &context) const
+        {
+            auto res = getTopAndPopCalcStack (context);
+            switch (res->type_)
+            {
+                case ScopeTblWrapper::WrapperType::NUM:
+                    context.calcStack_.push_back (context.buildScopeWrapper (std::sqrt (static_cast<NumScope *> (res)->val_)));
+                    break;
+                case ScopeTblWrapper::WrapperType::ARR_LIST: {
+                    const std::vector<double>& list = static_cast<ArrListScope *> (res)->list_;
+                    std::vector<double> res (list.size ());
+                    for (int i = 0; i < list.size (); ++i)
+                        res [i] = std::sqrt (list [i]);
+                    context.calcStack_.push_back (context.buildScopeWrapper (res));
+                    break;
+                }
+                default:
+                    throw std::runtime_error ("Bad data type for sqrt ()");
             }
         }
     };

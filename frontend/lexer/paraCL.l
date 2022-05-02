@@ -40,6 +40,7 @@ STRING                  \"(\\.|[^\"])*\"
 "print"                 {   return yy::parser::token_type::PRINT;       }
 "get"                   {   return yy::parser::token_type::GET;         }
 "sizeof"                {   return yy::parser::token_type::SIZEOF;      }
+"sqrt"                  {   return yy::parser::token_type::SQRT;        }
 
 "?"                     {   return yy::parser::token_type::SCAN;        }
 

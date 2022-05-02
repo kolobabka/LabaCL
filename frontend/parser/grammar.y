@@ -108,6 +108,7 @@ namespace {
 
 %token                      PRINT       "print"
 %token                      GET         "get"
+%token                      SQRT        "sqrt"
 %token                      SIZEOF      "sizeof"
 
 %token                      TEX_ADD_SECTION "tex_add_section"
@@ -174,7 +175,7 @@ namespace {
 %type <AST::Node*>                  texStatement
 %type <AST::Node*>                  getStatement
 %type <AST::Node*>                  sizeofStatement
-
+%type <AST::Node*>                  sqrtStatement
 
 %type <AST::Node*>                  func
 %type <AST::Node*>                  returnStatement
@@ -267,6 +268,15 @@ sizeofStatement             :   SIZEOF exprList                 {
                             |   SIZEOF error SEMICOLON          {   driver->pushError (@2, "Undefined expression in sizeof");    $$ = nullptr;   }
                             |   SIZEOF error END                {   driver->pushError (@2, "Undefined expression in sizeof");    $$ = nullptr;   };
 
+sqrtStatement               :   SQRT exprList                   {
+                                                                    if ((*$2).size () != 1) {
+                                                                        driver->pushError (@2, "Wrong number of arguments in sqrt");
+                                                                        $$ = nullptr;
+                                                                    } else
+                                                                        $$ = makeUnaryOperNode (AST::OperNode::OperType::SQRT, (*$2)[0], @1);
+                                                                }
+                            |   SQRT error SEMICOLON            {   driver->pushError (@2, "Undefined expression in sqrt");     $$ = nullptr;   }
+                            |   SQRT error END                  {   driver->pushError (@2, "Undefined expression in sqrt");     $$ = nullptr;   };
 
 printStatement              :   PRINT assignStatement SEMICOLON {   $$ = makeUnaryOperNode (AST::OperNode::OperType::PRINT, $2, @1);     }
                             |   PRINT error SEMICOLON           {   driver->pushError (@2, "Undefined expression in print");    $$ = nullptr;   }
@@ -520,6 +530,7 @@ atomic                      :   NUMBER                          {   $$ = new AST
                                                                     $$->addChild (funcArgs);
 
                                                                 }
+                            |   sqrtStatement                   {   $$ = $1;                                                        }
                             |   getStatement                    {   $$ = $1;                                                        }
                             |   sizeofStatement                 {   $$ = $1;                                                        }
                             |   array                           {   $$ = $1;                                                        }

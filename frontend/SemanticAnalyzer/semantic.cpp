@@ -357,6 +357,8 @@ void SemanticAnalyzer::CheckExprScope (Scope *curScope, AST::OperNode *node)
             CheckAssignStatementScope (curScope, node);
             break;
         }
+        case AST::OperNode::OperType::SIZEOF:
+        case AST::OperNode::OperType::SQRT:
         case AST::OperNode::OperType::UNARY_M:
         case AST::OperNode::OperType::UNARY_P:
         case AST::OperNode::OperType::RETURN:

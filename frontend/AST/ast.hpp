@@ -206,6 +206,7 @@ namespace AST {
 
             GET,    // get(arr, i)
             SIZEOF, // sizeof (arr)
+            SQRT, // sqrt (var)
 
             Tex_ADD_SECTION,
             Tex_ADD_TEXT,
@@ -258,6 +259,8 @@ namespace AST {
                 case OperType::Tex_ADD_CONTENT: out << "tex_add_content"; break;
                 case OperType::Tex_ADD_END: out << "tex_add_end"; break;
                 case OperType::Tex_COMPILE: out << "tex_compile"; break;
+                case OperType::SIZEOF: out << "sizeof"; break;
+                case OperType::SQRT: out << "sqrt"; break;
                 default: out << "Unexpected operator type!";
             }
         }

@@ -22,6 +22,7 @@ namespace interpret {
                 case AST::OperNode::OperType::UNARY_P: return new EAUnOp<UnOpPlus> (opNode, parent);
                 case AST::OperNode::OperType::PRINT: return new EAUnOp<UnOpPrint> (opNode, parent);
                 case AST::OperNode::OperType::SIZEOF: return new EAUnOp<UnOpSizeof> (opNode, parent);
+                case AST::OperNode::OperType::SQRT: return new EAUnOp<UnOpSqrt> (opNode, parent);
                 case AST::OperNode::OperType::GET: return new EABinOp<BinOpGet> (opNode, parent);
                 case AST::OperNode::OperType::Tex_ADD_TEXT: return new EABinOp<BinOpTexAddText> (opNode, parent);
                 case AST::OperNode::OperType::Tex_ADD_SECTION: return new EABinOp<BinOpTexAddSection> (opNode, parent);

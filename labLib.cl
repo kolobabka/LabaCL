@@ -37,9 +37,8 @@ __root_mean_square_error = func (arr) {
 		numerator = numerator  + (get(arr, i) - average_val) * (get(arr, i) - average_val);
 		i = i + 1;
 	}
-	
-	//result = sqrt (numerator / (arr_size - 1));
-    result = 1;
+
+	result = sqrt (numerator / (arr_size - 1));
 
 }
 
