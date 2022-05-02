@@ -3,13 +3,13 @@ __average_val = func (arr) {
  	result = 0;
 
  	i = 0;
-// 	arr_size = sizeof (arr);
- 	//while (i != arr_size) {
- 	//	result += get(arr, i);
- 	//	i = i + 1;
- 	//}
+ 	arr_size = sizeof (arr);
+    while (i != arr_size) {
+ 		result = result + get(arr, i);
+ 		i = i + 1;
+ 	}
 
- 	//result = result / arr_size;
+ 	result = result / arr_size;
 
 }
 
@@ -18,7 +18,7 @@ __average_val_range = func (arr, st, fin) {
  	result = 0;
  	i = st;
  	while (i != fin) {
- 		result += get(arr, i);
+ 		result = result + get(arr, i);
  		i = i + 1;
  	}
 
