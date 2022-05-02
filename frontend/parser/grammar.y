@@ -80,7 +80,7 @@ namespace {
 
 %locations
 
-%token <int>                NUMBER
+%token <double>             NUMBER
 %token <std::string>        TEXT
 %token <std::string>        ID
 

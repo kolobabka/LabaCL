@@ -38,9 +38,9 @@ namespace interpret {
     };
 
     struct NumScope final : public ScopeTblWrapper {
-        int val_;
+        double val_;
 
-        NumScope (const int val) : ScopeTblWrapper (ScopeTblWrapper::WrapperType::NUM), val_ (val) {}
+        NumScope (const double val) : ScopeTblWrapper (ScopeTblWrapper::WrapperType::NUM), val_ (val) {}
     };
 
     struct TextScope final : public ScopeTblWrapper {
@@ -51,9 +51,9 @@ namespace interpret {
 
     struct ArrListScope final : public ScopeTblWrapper {
 
-        std::vector<int> list_;
+        std::vector<double> list_;
 
-        ArrListScope (const std::vector<int>& list) : 
+        ArrListScope (const std::vector<double>& list) : 
             ScopeTblWrapper (ScopeTblWrapper::WrapperType::ARR_LIST), list_ (list) {};
 
     };
@@ -196,7 +196,7 @@ namespace interpret {
     };
 
     class EANum final : public EvalApplyNode {
-        int val_;
+        double val_;
 
     public:
         EANum (const AST::NumNode *astNum, EvalApplyNode *parent)
@@ -204,7 +204,7 @@ namespace interpret {
         {
         }
 
-        int getVal () const { return val_; }
+        double getVal () const { return val_; }
 
         std::pair<EvalApplyNode *, EvalApplyNode *> eval (Context &context) override;
     };
@@ -239,7 +239,7 @@ namespace interpret {
     class EAArrList final : public EvalApplyNode {
 
         std::vector<AST::Node *> list_;
-        std::vector<int> evaluatedList_;
+        std::vector<double> evaluatedList_;
         int curIndToExec_ = 0;
 
     public:
@@ -300,7 +300,7 @@ namespace interpret {
     struct Context final {
         std::vector<Scope *> scopeStack_;
         std::vector<ScopeTblWrapper *> calcStack_;
-        std::vector<std::pair<int, EvalApplyNode *>> retStack_;
+        std::vector<std::pair<double, EvalApplyNode *>> retStack_;
         std::vector<EvalApplyNode *> rubbishEANodeStack_;
         std::vector<Scope *> rubbishScopeStack_;
         std::vector<ScopeTblWrapper *> rubbishCalcStack_;
@@ -337,7 +337,7 @@ namespace interpret {
             return static_cast<InlineScope *> (rubbishCalcStack_.back ());
         }
 
-        NumScope *buildScopeWrapper (const int val)
+        NumScope *buildScopeWrapper (const double val)
         {
             rubbishCalcStack_.push_back (new NumScope (val));
             return static_cast<NumScope *> (rubbishCalcStack_.back ());
@@ -355,7 +355,7 @@ namespace interpret {
             return static_cast<FuncScope *> (rubbishCalcStack_.back ());
         }
 
-        ArrListScope *buildScopeWrapper (const std::vector<int>& list)
+        ArrListScope *buildScopeWrapper (const std::vector<double>& list)
         {
             rubbishCalcStack_.push_back (new ArrListScope (list));
             return static_cast<ArrListScope *> (rubbishCalcStack_.back ());
@@ -465,7 +465,7 @@ namespace interpret {
 
         std::pair<EvalApplyNode *, EvalApplyNode *> eval (Context &context) override
         {
-            int tmp;
+            double tmp;
             std::cin >> tmp;
 
             context.calcStack_.push_back (context.buildScopeWrapper (tmp));
@@ -473,7 +473,7 @@ namespace interpret {
         }
     };
 
-    int getTopAndPopNum (Context &context);
+    double getTopAndPopNum (Context &context);
     ScopeTblWrapper *getTopAndPopCalcStack (Context &context);
     
     struct UnOpSizeof {
@@ -486,7 +486,7 @@ namespace interpret {
                     context.calcStack_.push_back (context.buildScopeWrapper (1));
                     break;
                 case ScopeTblWrapper::WrapperType::ARR_LIST: {
-                    const std::vector<int>& list = static_cast<ArrListScope *> (res)->list_;
+                    const std::vector<double>& list = static_cast<ArrListScope *> (res)->list_;
                     context.calcStack_.push_back (context.buildScopeWrapper (list.size()));
                     break;
                 }
@@ -506,7 +506,7 @@ namespace interpret {
                     std::cout << static_cast<NumScope *> (res)->val_ << std::endl;
                     break;
                 case ScopeTblWrapper::WrapperType::ARR_LIST: {
-                    const std::vector<int>& list = 
+                    const std::vector<double>& list = 
                         static_cast<ArrListScope *> (res)->list_;
                     std::cout << "[ ";
                     for (auto v: list)
@@ -536,15 +536,15 @@ namespace interpret {
 
     namespace {
         void addNums (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
-            int firstVal    = static_cast<NumScope *> (first)->val_;
-            int secondVal   = static_cast<NumScope *> (second)->val_;
+            double firstVal    = static_cast<NumScope *> (first)->val_;
+            double secondVal   = static_cast<NumScope *> (second)->val_;
             context.calcStack_.push_back (context.buildScopeWrapper (firstVal + secondVal));
         }
         void addArrs (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
-            const std::vector<int>& firstList = static_cast<ArrListScope *> (first)->list_;
-            const std::vector<int>& secondList = static_cast<ArrListScope *> (second)->list_;
+            const std::vector<double>& firstList = static_cast<ArrListScope *> (first)->list_;
+            const std::vector<double>& secondList = static_cast<ArrListScope *> (second)->list_;
             int maxSize = std::max (firstList.size (), secondList.size ());
-            std::vector<int> res (maxSize);
+            std::vector<double> res (maxSize);
             for (int i = 0; i < maxSize; ++i)
                 res [i] = (i < firstList.size () ? firstList [i] : 0) +
                             (i < secondList.size () ? secondList [i] : 0);
@@ -556,7 +556,7 @@ namespace interpret {
 
         void getElemFromArray (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
 
-            const std::vector<int>& list = static_cast<ArrListScope *> (first)->list_;
+            const std::vector<double>& list = static_cast<ArrListScope *> (first)->list_;
             const int index = static_cast<NumScope *> (second)->val_;
 
             if (index >= list.size())
@@ -577,7 +577,7 @@ namespace interpret {
                 throw std::runtime_error ("Attempt to apply operator get to non-array entity");
 
             if (first->type_ != ScopeTblWrapper::WrapperType::NUM)  
-                throw std::runtime_error ("Non-integer index");
+                throw std::runtime_error ("Non-number index");
 
             try {
                 getElemFromArray (context, second, first);
@@ -763,15 +763,15 @@ namespace interpret {
 
     namespace {
         void subNums (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
-            int firstVal    = static_cast<NumScope *> (first)->val_;
-            int secondVal   = static_cast<NumScope *> (second)->val_;
+            double firstVal    = static_cast<NumScope *> (first)->val_;
+            double secondVal   = static_cast<NumScope *> (second)->val_;
             context.calcStack_.push_back (context.buildScopeWrapper (secondVal - firstVal));
         }
         void subArrs (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
-            const std::vector<int>& firstList = static_cast<ArrListScope *> (first)->list_;
-            const std::vector<int>& secondList = static_cast<ArrListScope *> (second)->list_;
+            const std::vector<double>& firstList = static_cast<ArrListScope *> (first)->list_;
+            const std::vector<double>& secondList = static_cast<ArrListScope *> (second)->list_;
             int maxSize = std::max (firstList.size (), secondList.size ());
-            std::vector<int> res (maxSize);
+            std::vector<double> res (maxSize);
             for (int i = 0; i < maxSize; ++i)
                 res [i] = - (i < firstList.size () ? firstList [i] : 0) +
                             (i < secondList.size () ? secondList [i] : 0);
@@ -806,15 +806,15 @@ namespace interpret {
 
     namespace {
         void mulNums (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
-            int firstVal    = static_cast<NumScope *> (first)->val_;
-            int secondVal   = static_cast<NumScope *> (second)->val_;
+            double firstVal    = static_cast<NumScope *> (first)->val_;
+            double secondVal   = static_cast<NumScope *> (second)->val_;
             context.calcStack_.push_back (context.buildScopeWrapper (secondVal * firstVal));
         }
         void mulArrs (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
-            const std::vector<int>& firstList = static_cast<ArrListScope *> (first)->list_;
-            const std::vector<int>& secondList = static_cast<ArrListScope *> (second)->list_;
+            const std::vector<double>& firstList = static_cast<ArrListScope *> (first)->list_;
+            const std::vector<double>& secondList = static_cast<ArrListScope *> (second)->list_;
             int maxSize = std::max (firstList.size (), secondList.size ());
-            std::vector<int> res (maxSize);
+            std::vector<double> res (maxSize);
             for (int i = 0; i < maxSize; ++i)
                 res [i] =   (i < firstList.size () ? firstList [i] : 0) *
                             (i < secondList.size () ? secondList [i] : 0);
@@ -849,15 +849,15 @@ namespace interpret {
 
     namespace {
         void divNums (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
-            int firstVal    = static_cast<NumScope *> (first)->val_;
-            int secondVal   = static_cast<NumScope *> (second)->val_;
+            double firstVal    = static_cast<NumScope *> (first)->val_;
+            double secondVal   = static_cast<NumScope *> (second)->val_;
             context.calcStack_.push_back (context.buildScopeWrapper (secondVal / firstVal));
         }
         void divArrs (Context &context, ScopeTblWrapper* first, ScopeTblWrapper* second) {
-            const std::vector<int>& firstList = static_cast<ArrListScope *> (first)->list_;
-            const std::vector<int>& secondList = static_cast<ArrListScope *> (second)->list_;
+            const std::vector<double>& firstList = static_cast<ArrListScope *> (first)->list_;
+            const std::vector<double>& secondList = static_cast<ArrListScope *> (second)->list_;
             int maxSize = std::max (firstList.size (), secondList.size ());
-            std::vector<int> res (maxSize);
+            std::vector<double> res (maxSize);
             for (int i = 0; i < maxSize; ++i)
                 res [i] =   (i < secondList.size () ? secondList [i] : 0) /
                             (i < firstList.size () ? firstList [i] : 1);
@@ -890,11 +890,21 @@ namespace interpret {
         }
     };
 
+    namespace {
+    
+        const double Epsilon = 1e-5;
+
+        bool DoubleCmp (const double first, const double second) {
+            return std::abs (first - second) < Epsilon;
+        }
+
+    }
+
     struct BinOpMore {
         void operator() (Context &context) const
         {
-            const int first = getTopAndPopNum (context);
-            const int second = getTopAndPopNum (context);
+            const double first = getTopAndPopNum (context);
+            const double second = getTopAndPopNum (context);
 
             context.calcStack_.push_back ((context.buildScopeWrapper (second > first)));
         }
@@ -903,8 +913,8 @@ namespace interpret {
     struct BinOpLess {
         void operator() (Context &context) const
         {
-            const int first = getTopAndPopNum (context);
-            const int second = getTopAndPopNum (context);
+            const double first = getTopAndPopNum (context);
+            const double second = getTopAndPopNum (context);
 
             context.calcStack_.push_back (((context.buildScopeWrapper (second < first))));
         }
@@ -913,40 +923,40 @@ namespace interpret {
     struct BinOpLTE {
         void operator() (Context &context) const
         {
-            const int first = getTopAndPopNum (context);
-            const int second = getTopAndPopNum (context);
+            const double first = getTopAndPopNum (context);
+            const double second = getTopAndPopNum (context);
 
-            context.calcStack_.push_back (((context.buildScopeWrapper (second <= first))));
+            context.calcStack_.push_back (context.buildScopeWrapper (second < first || DoubleCmp (first, second)));
         }
     };
 
     struct BinOpGTE {
         void operator() (Context &context) const
         {
-            const int first = getTopAndPopNum (context);
-            const int second = getTopAndPopNum (context);
+            const double first = getTopAndPopNum (context);
+            const double second = getTopAndPopNum (context);
 
-            context.calcStack_.push_back (((context.buildScopeWrapper (second >= first))));
+            context.calcStack_.push_back (context.buildScopeWrapper (second > first || DoubleCmp (first, second)));
         }
     };
 
     struct BinOpEQ {
         void operator() (Context &context) const
         {
-            const int first = getTopAndPopNum (context);
-            const int second = getTopAndPopNum (context);
+            const double first = getTopAndPopNum (context);
+            const double second = getTopAndPopNum (context);
 
-            context.calcStack_.push_back (((context.buildScopeWrapper (second == first))));
+            context.calcStack_.push_back (context.buildScopeWrapper (DoubleCmp (first, second)));
         }
     };
 
     struct BinOpNEQ {
         void operator() (Context &context) const
         {
-            const int first = getTopAndPopNum (context);
-            const int second = getTopAndPopNum (context);
+            const double first = getTopAndPopNum (context);
+            const double second = getTopAndPopNum (context);
 
-            context.calcStack_.push_back (((context.buildScopeWrapper (second != first))));
+            context.calcStack_.push_back (context.buildScopeWrapper (!DoubleCmp (first, second)));
         }
     };
 

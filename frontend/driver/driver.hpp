@@ -60,7 +60,8 @@ namespace yy {
 
             switch (tokenT) {
                 case yy::parser::token_type::NUMBER: {
-                    yylval->build<int> () = std::stoi (lexer_->YYText ());
+                    yylval->build<double> () = std::atof (lexer_->YYText ());
+                    std::cout << "NUMBER = " << std::atof (lexer_->YYText ()) << std::endl;
                     break;
                 }
                 case yy::parser::token_type::ID: {

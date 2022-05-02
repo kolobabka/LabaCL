@@ -264,14 +264,14 @@ namespace AST {
     };
 
     class NumNode final : public Node {
-        int value_;
+        double value_;
 
     public:
-        NumNode (const int value = 0, Node *parent = nullptr) : Node (NodeT::NUMBER, parent), value_ (value) {}
+        NumNode (const double value = 0., Node *parent = nullptr) : Node (NodeT::NUMBER, parent), value_ (value) {}
 
         void nodeDump (std::ostream &out) const override { out << value_; }
 
-        int getValue () const { return value_; }
+        double getValue () const { return value_; }
     };
 
     class TextNode final : public Node {

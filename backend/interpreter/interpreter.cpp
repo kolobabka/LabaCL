@@ -132,12 +132,12 @@ namespace interpret {
         throw std::runtime_error ("unexpected AST::Node type");
     }
 
-    int getTopAndPopNum (Context &context)
+    double getTopAndPopNum (Context &context)
     {
         NumScope *res = static_cast<NumScope *> (context.calcStack_.back ());
         context.calcStack_.pop_back ();
 
-        int val = res->val_;
+        double val = res->val_;
         return val;
     }
 
@@ -415,7 +415,7 @@ namespace interpret {
         const AST::VarNode *nameNode = static_cast<const AST::VarNode *> ((*node)[0]);
         const AST::FuncNode *args = static_cast<const AST::FuncNode *> ((*node)[1]);
 
-        std::vector<std::pair<int, EvalApplyNode *>> &retStack = context.retStack_;
+        std::vector<std::pair<double, EvalApplyNode *>> &retStack = context.retStack_;
 
         if (!retStack.empty () && retStack.back ().second == this) {
             retStack.pop_back ();
@@ -467,7 +467,7 @@ namespace interpret {
         const AST::Node *node = EvalApplyNode::getNode ();
         const AST::ScopeNode *scopeNode = static_cast<const AST::ScopeNode *> ((*node)[0]);
 
-        std::vector<std::pair<int, EvalApplyNode *>> &retStack = context.retStack_;
+        std::vector<std::pair<double, EvalApplyNode *>> &retStack = context.retStack_;
         if (!retStack.empty () && retStack.back ().second == this) {
             retStack.pop_back ();
             return {parent_, this};

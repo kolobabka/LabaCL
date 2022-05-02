@@ -32,6 +32,7 @@ STRING                  \"(\\.|[^\"])*\"
 {MULTILINE_COMMENT}     {   /*skip*/    }
 
 {DIGIT}*                {   return yy::parser::token_type::NUMBER;      }
+{DIGIT}+"."{DIGIT}+     {   return yy::parser::token_type::NUMBER;      }
 
 "if"                    {   return yy::parser::token_type::IF;          }
 "while"                 {   return yy::parser::token_type::WHILE;       }
