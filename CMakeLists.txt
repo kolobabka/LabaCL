@@ -1,10 +1,10 @@
 #
-# ParaCL implementation
-# if you want see some more you may check github.com/Exactlywb/VladimirovsCourse
-# (c) Ivan Ivanov, Vladislav Belov, Frolov Daniil
+# LabaCL implementation
+# if you want see some more you may check github.com/kolobabka/LabaCL
+# (c) Vladislav Belov, Frolov Daniil
 #
 cmake_minimum_required (VERSION 3.13.4)
-project (ParaCL)
+project (LabaCL)
 
 include(CMakePrintHelpers)
 
@@ -62,6 +62,10 @@ llvm_map_components_to_libnames (llvm_libs support core irreader)
 
 # Link
 target_link_libraries (${PROJECT_NAME} ${llvm_libs})
+
+# Matplot
+add_subdirectory (matplotplusplus)
+target_link_libraries (${PROJECT_NAME} PUBLIC matplot)
 
 target_compile_features (${PROJECT_NAME} PRIVATE cxx_std_20)
 

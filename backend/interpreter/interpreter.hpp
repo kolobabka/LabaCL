@@ -16,6 +16,9 @@
 #include "location.hh"
 #include "nAryTree.hpp"
 
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
 namespace interpret {
 
     //=======================================================================
@@ -755,6 +758,27 @@ namespace interpret {
                        "\\maketitle\n" << std::endl;
 
             opFile.close ();
+        }
+
+    };
+
+    struct TernOpCreateGraph {
+    
+        void operator() (Context &context) const
+        {
+            auto first = getTopAndPopCalcStack (context);
+            auto second = getTopAndPopCalcStack (context);
+            auto third = getTopAndPopCalcStack (context);
+
+            if (first->type_ != ScopeTblWrapper::WrapperType::ARR_LIST ||
+                second->type_ != ScopeTblWrapper::WrapperType::ARR_LIST)
+                throw std::runtime_error ("Attempt to apply operator get to non-array entity");
+
+            if (third->type_ != ScopeTblWrapper::WrapperType::TEXT)
+                throw std::runtime_error ("Expected output picture name");
+
+            //!TODO
+
         }
 
     };

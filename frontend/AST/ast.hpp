@@ -215,6 +215,8 @@ namespace AST {
             Tex_ADD_CONTENT,
             Tex_COMPILE,
 
+            CREATE_GRAPH, //create_graph
+
             RETURN,  // return ...
             CALL
 
@@ -261,6 +263,7 @@ namespace AST {
                 case OperType::Tex_COMPILE: out << "tex_compile"; break;
                 case OperType::SIZEOF: out << "sizeof"; break;
                 case OperType::SQRT: out << "sqrt"; break;
+                case OperType::CREATE_GRAPH: out << "create_graph"; break;
                 default: out << "Unexpected operator type!";
             }
         }

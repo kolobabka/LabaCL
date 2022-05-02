@@ -118,6 +118,8 @@ namespace {
 %token                      TEX_ADD_CONTENT "tex_add_content"
 %token                      TEX_COMPILE     "tex_compile"
 
+%token                      CREATE_GRAPH    "create_graph"
+
 %token                      OPCIRCBRACK "("
 %token                      CLCIRCBRACK ")"
 
@@ -176,6 +178,7 @@ namespace {
 %type <AST::Node*>                  getStatement
 %type <AST::Node*>                  sizeofStatement
 %type <AST::Node*>                  sqrtStatement
+%type <AST::Node*>                  createGraph
 
 %type <AST::Node*>                  func
 %type <AST::Node*>                  returnStatement
@@ -242,6 +245,7 @@ statement                   :   assignment                      {   $$ = $1;    
                             |   orStatement SEMICOLON           {   $$ = $1;    }
                             |   printStatement                  {   $$ = $1;    }
                             |   texStatement                    {   $$ = $1;    }
+                            |   createGraph                     {   $$ = $1;    }
                             |   returnStatement                 {   $$ = $1;    }
                             |   error SEMICOLON                 {   driver->pushError (@1, "Undefined statement");  $$ = nullptr;   }
                             |   error END                       {   driver->pushError (@1, "Undefined statement");  $$ = nullptr;   };
@@ -257,6 +261,14 @@ getStatement                :   GET exprList                    {
                                                                 }
                             |   GET error SEMICOLON             {   driver->pushError (@2, "Undefined expression in get");    $$ = nullptr;   }
                             |   GET error END                   {   driver->pushError (@2, "Undefined expression in get");    $$ = nullptr;   };
+
+createGraph                 :   CREATE_GRAPH exprList SEMICOLON {
+                                                                    if ((*$2).size () != 3) {
+                                                                        driver->pushError (@2, "Wrong number of arguments in operator create_graph");
+                                                                        $$ = nullptr;
+                                                                    } else
+                                                                        $$ = makeTernOperNode (AST::OperNode::OperType::CREATE_GRAPH, (*$2) [0], (*$2)[1], (*$2)[2], @1);
+                                                                };
 
 sizeofStatement             :   SIZEOF exprList                 {   
                                                                     if ((*$2).size() != 1) {

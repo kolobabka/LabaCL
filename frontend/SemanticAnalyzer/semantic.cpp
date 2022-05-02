@@ -382,6 +382,7 @@ void SemanticAnalyzer::CheckExprScope (Scope *curScope, AST::OperNode *node)
         case AST::OperNode::OperType::MOD: HandleBinaryOperation (curScope, node); break;
         case AST::OperNode::OperType::CALL: CheckCallOperatorInExpr (curScope, node); break;
 
+        case AST::OperNode::OperType::CREATE_GRAPH:
         case AST::OperNode::OperType::Tex_ADD_SECTION:
         case AST::OperNode::OperType::Tex_ADD_TEXT:
         case AST::OperNode::OperType::Tex_ADD_HEAD:

@@ -29,6 +29,7 @@ namespace interpret {
                 case AST::OperNode::OperType::Tex_ADD_CONTENT: return new EAUnOp<UnOpTexAddContent> (opNode, parent);
                 case AST::OperNode::OperType::Tex_ADD_END: return new EAUnOp<UnOpTexAddEnd> (opNode, parent);
                 case AST::OperNode::OperType::Tex_ADD_HEAD: return new EATernOp<TernOpTexAddHead> (opNode, parent);
+                case AST::OperNode::OperType::CREATE_GRAPH: return new EATernOp<TernOpCreateGraph> (opNode, parent);
                 case AST::OperNode::OperType::Tex_COMPILE: return new EAUnOp<UnOpTexCompile> (opNode, parent);
                 case AST::OperNode::OperType::ADD: return new EABinOp<BinOpAdd> (opNode, parent);
                 case AST::OperNode::OperType::SUB: return new EABinOp<BinOpSub> (opNode, parent);

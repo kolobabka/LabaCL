@@ -88,6 +88,8 @@ STRING                  \"(\\.|[^\"])*\"
 
 "tex_compile"           {   return yy::parser::token_type::TEX_COMPILE; }
 
+"create_graph"          {   return yy::parser::token_type::CREATE_GRAPH;}
+
 {WORD}                  {   return yy::parser::token_type::ID;          }
 {STRING}                {   return yy::parser::token_type::TEXT;        }
 
