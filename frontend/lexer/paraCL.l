@@ -40,8 +40,6 @@ STRING                  \"(\\.|[^\"])*\"
 "get"                   {   return yy::parser::token_type::GET;         }
 "sizeof"                {   return yy::parser::token_type::SIZEOF;      }
 
-
-
 "?"                     {   return yy::parser::token_type::SCAN;        }
 
 ","                     {   return yy::parser::token_type::COMMA;       }

@@ -110,8 +110,6 @@ namespace {
 %token                      GET         "get"
 %token                      SIZEOF      "sizeof"
 
-
-
 %token                      TEX_ADD_SECTION "tex_add_section"
 %token                      TEX_ADD_TEXT    "tex_add_text"
 %token                      TEX_ADD_STD_HEAD"tex_add_std_head"
@@ -242,55 +240,79 @@ statement                   :   assignment                      {   $$ = $1;    
                             |   whileStatement                  {   $$ = $1;    }
                             |   orStatement SEMICOLON           {   $$ = $1;    }
                             |   printStatement                  {   $$ = $1;    }
-                            |   sizeofStatement                 {   $$ = $1;    }
                             |   texStatement                    {   $$ = $1;    }
-                            |   getStatement                    {   $$ = $1;    }
                             |   returnStatement                 {   $$ = $1;    }
                             |   error SEMICOLON                 {   driver->pushError (@1, "Undefined statement");  $$ = nullptr;   }
                             |   error END                       {   driver->pushError (@1, "Undefined statement");  $$ = nullptr;   };
 
 returnStatement             :   RET assignStatement SEMICOLON   {   $$ = makeUnaryOperNode (AST::OperNode::OperType::RETURN, $2, @1);   };                                    
 
-getStatement                :   GET exprList SEMICOLON          {   
-                                                                    if ((*$2).size() != 2) 
-                                                                        driver->pushError (@2, "Wrong number of arguments in operator get");                
-                                                                    $$ = makeBinOperNode (AST::OperNode::OperType::GET, (*$2)[0], (*$2)[1], @1);          
+getStatement                :   GET exprList                    {   
+                                                                    if ((*$2).size() != 2) {
+                                                                        driver->pushError (@2, "Wrong number of arguments in operator get");        
+                                                                        $$ = nullptr;
+                                                                    } else
+                                                                        $$ = makeBinOperNode (AST::OperNode::OperType::GET, (*$2)[0], (*$2)[1], @1);
                                                                 }
                             |   GET error SEMICOLON             {   driver->pushError (@2, "Undefined expression in get");    $$ = nullptr;   }
                             |   GET error END                   {   driver->pushError (@2, "Undefined expression in get");    $$ = nullptr;   };
 
-sizeofStatement             :   SIZEOF exprList SEMICOLON       {   
-                                                                    if ((*$2).size() != 1) 
+sizeofStatement             :   SIZEOF exprList                 {   
+                                                                    if ((*$2).size() != 1) {
                                                                         driver->pushError (@2, "Wrong number of arguments in operator sizeof");
-                                                                    $$ = makeUnaryOperNode (AST::OperNode::OperType::SIZEOF, (*$2)[0], @1);      
+                                                                        $$ = nullptr;
+                                                                    } else
+                                                                        $$ = makeUnaryOperNode (AST::OperNode::OperType::SIZEOF, (*$2)[0], @1);      
                                                                 }
                             |   SIZEOF error SEMICOLON          {   driver->pushError (@2, "Undefined expression in sizeof");    $$ = nullptr;   }
                             |   SIZEOF error END                {   driver->pushError (@2, "Undefined expression in sizeof");    $$ = nullptr;   };
 
 
 printStatement              :   PRINT assignStatement SEMICOLON {   $$ = makeUnaryOperNode (AST::OperNode::OperType::PRINT, $2, @1);     }
-                            |   PRINT getStatement              {   $$ = makeUnaryOperNode (AST::OperNode::OperType::PRINT, $2, @1);     }
-                            |   PRINT sizeofStatement           {   $$ = makeUnaryOperNode (AST::OperNode::OperType::PRINT, $2, @1);     }
                             |   PRINT error SEMICOLON           {   driver->pushError (@2, "Undefined expression in print");    $$ = nullptr;   }
                             |   PRINT error END                 {   driver->pushError (@2, "Undefined expression in print");    $$ = nullptr;   };
 
 texStatement                :   TEX_ADD_SECTION exprList SEMICOLON  {
-                                                                        $$ = makeBinOperNode (AST::OperNode::OperType::Tex_ADD_SECTION, (*$2)[0], (*$2)[1], @1);
+                                                                        if ((*$2).size () != 2) {
+                                                                            $$ = nullptr;
+                                                                            driver->pushError (@2, "Wrong number of arguments in operator tex_add_section");
+                                                                        } else
+                                                                            $$ = makeBinOperNode (AST::OperNode::OperType::Tex_ADD_SECTION, (*$2)[0], (*$2)[1], @1);
                                                                     }
                             |   TEX_ADD_TEXT exprList SEMICOLON     {
-                                                                        $$ = makeBinOperNode (AST::OperNode::OperType::Tex_ADD_TEXT, (*$2)[0], (*$2)[1], @1);
+                                                                        if ((*$2).size () != 2) {
+                                                                            $$ = nullptr;
+                                                                            driver->pushError (@2, "Wrong number of arguments in operator tex_add_text");
+                                                                        } else
+                                                                            $$ = makeBinOperNode (AST::OperNode::OperType::Tex_ADD_TEXT, (*$2)[0], (*$2)[1], @1);
                                                                     }
                             |   TEX_ADD_STD_HEAD exprList SEMICOLON {
-                                                                        $$ = makeTernOperNode (AST::OperNode::OperType::Tex_ADD_HEAD, (*$2) [0], (*$2)[1], (*$2)[2], @1);
+                                                                        if ((*$2).size () != 3) {
+                                                                            $$ = nullptr;
+                                                                            driver->pushError (@2, "Wrong number of arguments in operator tex_add_std_head");
+                                                                        } else
+                                                                            $$ = makeTernOperNode (AST::OperNode::OperType::Tex_ADD_HEAD, (*$2) [0], (*$2)[1], (*$2)[2], @1);
                                                                     }
                             |   TEX_ADD_END exprList SEMICOLON      {
-                                                                        $$ = makeUnaryOperNode (AST::OperNode::OperType::Tex_ADD_END, (*$2) [0], @1);
+                                                                        if ((*$2).size () != 1) {
+                                                                            $$ = nullptr;
+                                                                            driver->pushError (@2, "Wrong number of arguments in operator tex_add_end");
+                                                                        } else
+                                                                            $$ = makeUnaryOperNode (AST::OperNode::OperType::Tex_ADD_END, (*$2) [0], @1);
                                                                     }
                             |   TEX_COMPILE exprList SEMICOLON      {
-                                                                        $$ = makeUnaryOperNode (AST::OperNode::OperType::Tex_COMPILE, (*$2) [0], @1);
+                                                                        if ((*$2).size () != 1) {
+                                                                            $$ = nullptr;
+                                                                            driver->pushError (@2, "Wrong number of arguments in operator tex_compile");
+                                                                        } else
+                                                                            $$ = makeUnaryOperNode (AST::OperNode::OperType::Tex_COMPILE, (*$2) [0], @1);
                                                                     }
                             |   TEX_ADD_CONTENT exprList SEMICOLON  {
-                                                                        $$ = makeUnaryOperNode (AST::OperNode::OperType::Tex_ADD_CONTENT, (*$2) [0], @1);
+                                                                        if ((*$2).size () != 1) {
+                                                                            $$ = nullptr;
+                                                                            driver->pushError (@2, "Wrong number of arguments in operator tex_add_content");
+                                                                        } else
+                                                                            $$ = makeUnaryOperNode (AST::OperNode::OperType::Tex_ADD_CONTENT, (*$2) [0], @1);
                                                                     };
 
 argsList                    :   OPCIRCBRACK args CLCIRCBRACK    {   $$ = $2;        }
@@ -390,7 +412,6 @@ assignment                  :   ID ASSIGN assignStatement SEMICOLON
                                                                 {   $$ = makeAssign ($1, $3, @2, @1);   }
                             |   ID ASSIGN func SEMICOLON        {   $$ = makeAssign ($1, $3, @2, @1);   }
                             |   ID ASSIGN func                  {   $$ = makeAssign ($1, $3, @2, @1);   }
-                            |   ID ASSIGN getStatement                  {   $$ = makeAssign ($1, $3, @2, @1);   }
                             |   ID ASSIGN error SEMICOLON       {   driver->pushError (@3, "Bad expression after assignment");  
                                                                     $$ = nullptr;   
                                                                 }
@@ -499,6 +520,8 @@ atomic                      :   NUMBER                          {   $$ = new AST
                                                                     $$->addChild (funcArgs);
 
                                                                 }
+                            |   getStatement                    {   $$ = $1;                                                        }
+                            |   sizeofStatement                 {   $$ = $1;                                                        }
                             |   array                           {   $$ = $1;                                                        }
                             |   TEXT                            {   $$ = new AST::TextNode  ($1, @1);                               }
                             |   ID                              {   $$ = new AST::VarNode   ($1, @1);                               };
