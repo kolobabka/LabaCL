@@ -16,8 +16,7 @@
 #include "location.hh"
 #include "nAryTree.hpp"
 
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
+#include <matplot/matplot.h>
 
 namespace interpret {
 
@@ -762,6 +761,39 @@ namespace interpret {
 
     };
 
+    namespace {
+
+        std::pair<double, double> Approx
+        (std::vector<double>::iterator xSt, std::vector<double>::iterator xFin,
+         std::vector<double>::iterator ySt, std::vector<double>::iterator yFin)
+        {
+            double sumX     = 0;
+            double sumX2    = 0;
+            double sumY     = 0;
+            double sumXY    = 0;
+
+            int n = 0;
+            while (xSt != xFin && ySt != yFin) {
+                
+                sumX    += *xSt;
+                sumX2   += (*xSt) * (*xSt);
+                sumY    += *ySt;
+                sumXY   += (*xSt) * (*ySt);
+
+                ySt++;
+                xSt++;
+                n++;
+
+            }
+
+            double k = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            double b = (sumY - k * sumX) / n;
+
+            return std::pair<double, double> (k, b);
+        }
+
+    };
+
     struct TernOpCreateGraph {
     
         void operator() (Context &context) const
@@ -777,7 +809,38 @@ namespace interpret {
             if (third->type_ != ScopeTblWrapper::WrapperType::TEXT)
                 throw std::runtime_error ("Expected output picture name");
 
-            //!TODO
+            std::vector<double>& x = static_cast<ArrListScope *> (second)->list_;
+            std::vector<double>& y = static_cast<ArrListScope *> (first)->list_;
+            
+            auto [k, b] = Approx (x.begin (), x.end (), y.begin (), y.end ());
+
+            double maxCoordX = *(std::max_element (x.begin (), x.end ()));
+            double minCoordX = *(std::min_element (x.begin (), x.end ()));
+
+            std::vector<double> approximatedX;
+            approximatedX.push_back (minCoordX);
+            approximatedX.push_back (maxCoordX);
+
+            std::vector<double> approximatedY;
+            approximatedY.push_back (minCoordX * k + b);
+            approximatedY.push_back (maxCoordX * k + b);
+
+            auto fig = matplot::figure ();
+
+            auto plSet = matplot::plot (approximatedX, approximatedY);
+            plSet->line_width (2);
+
+            matplot::hold (matplot::on);
+            
+            auto pSet = matplot::scatter (x, y);
+            pSet->marker_face(true);
+            pSet->marker_color({0, .5, .5});
+            pSet->marker_size (7);
+            pSet->marker_style (matplot::line_spec::marker_style::circle);
+
+            fig->draw ();
+
+            matplot::save (static_cast<TextScope *> (third)->text_);
 
         }
 

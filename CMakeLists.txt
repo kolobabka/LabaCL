@@ -3,7 +3,7 @@
 # if you want see some more you may check github.com/kolobabka/LabaCL
 # (c) Vladislav Belov, Frolov Daniil
 #
-cmake_minimum_required (VERSION 3.13.4)
+cmake_minimum_required (VERSION 3.14)
 project (LabaCL)
 
 include(CMakePrintHelpers)
@@ -61,7 +61,7 @@ add_executable (${PROJECT_NAME}
 llvm_map_components_to_libnames (llvm_libs support core irreader)
 
 # Link
-target_link_libraries (${PROJECT_NAME} ${llvm_libs})
+target_link_libraries (${PROJECT_NAME} PUBLIC ${llvm_libs})
 
 # Matplot
 add_subdirectory (matplotplusplus)
