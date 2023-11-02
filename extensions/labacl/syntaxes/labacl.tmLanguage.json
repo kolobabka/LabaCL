@@ -1,0 +1,140 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "LabaCL",
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#numbers"
+		},
+		{
+			"include": "#operators"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#ctrl-statements"
+		}
+	],
+	"repository": {
+		"numbers": {
+			"patterns": [{
+				"name": "keyword.numbers.labacl",
+				"match": "(^-?[0-9][0-9]\\.]+$)"
+			}]
+		},
+		"operators": {
+			"patterns": [{
+				"name": "keyword.operators.labacl",
+				"match": "\\b(print)\\b"
+			}]
+		},
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.operators.labacl",
+				"match": "\\b(func)\\b"
+			}]
+		},
+		"ctrl-statements": {
+			"patterns": [{
+				"name": "keyword.control.labacl",
+				"match": "\\b(if|while)\\b"
+			}]
+		},
+		"expression": {
+			"patterns": [
+				{ "include": "#repository"},
+				{ "include": "#numbers"}
+			]
+		},
+		"paren-expression": {
+			"patterns": [
+				{
+					"captures": {
+						"1": {
+							"name": "entity.name.function.labacl"
+						}
+					},
+					"match": "\\b(\\w+)(?:\\s+([-a-zA-Z0-9_]+))?\\s*(\\()",
+					"name": "punctuation.definition.parameters.labacl",
+					"patterns": [{ "include": "#expression" }]
+				}
+			]
+		}
+	},
+	"comments": {
+		"patterns": [
+			{
+				"begin": "#\\!",
+				"beginCaptures": {
+					"0": {
+						"name": "punctuation.definition.comment.labacl"
+					}
+				},
+				"end": "\\n",
+				"name": "comment.line.number-sign.labacl"
+			},
+			{
+				"captures": {
+					"0": {
+						"name": "punctuation.definition.comment.labacl"
+					}
+				},
+				"match": "/\\*\\*/",
+				"name": "comment.block.empty.labacl"
+			},
+			{
+				"include": "#comments-inline"
+			}
+		]
+	},
+	"comments-inline": {
+		"patterns": [
+			{
+				"begin": "/\\*",
+				"captures": {
+					"0": {
+						"name": "punctuation.definition.comment.labacl"
+					}
+				},
+				"end": "\\*/",
+				"name": "comment.block.labacl"				
+			},
+			{
+				"begin": "(^[ \\t]+)?(?=//)",
+				"beginCaptures": {
+					"1": {
+						"name": "punctuation.whitespace.comment.leading.labacl"
+					}
+				},
+				"end": "(?!\\G)",
+				"patterns": [
+					{
+						"begin": "//",
+						"beginCaptures": {
+							"0": {
+								"name": "punctuation.definition.comment.labacl"
+							}							
+						},
+						"end": "\\n",
+						"name": "comment.line.double-slash.labacl"
+					}
+				]			
+			}
+		]
+	},
+		"strings": {
+			"name": "string.quoted.double.labacl",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.labacl",
+					"match": "\\\\."
+				}
+			]
+		},
+	"scopeName": "source.cl"
+}

@@ -1,0 +1,3 @@
+foo = func(x) : bar {
+
+}

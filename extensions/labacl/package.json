@@ -1,0 +1,25 @@
+{
+  "name": "labacl",
+  "displayName": "LabaCLHighlight",
+  "description": "the highlight for LabaCL language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.83.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "labacl",
+      "aliases": ["LabaCL", "labacl"],
+      "extensions": [".cl"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "labacl",
+      "scopeName": "source.cl",
+      "path": "./syntaxes/labacl.tmLanguage.json"
+    }]
+  }
+}
